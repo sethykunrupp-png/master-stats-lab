@@ -1,0 +1,2688 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Master Stats Lab</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--accent:#4f46e5;--accent-d:#3730a3;--bg:#f8fafc;--card:#fff;--text:#1e293b;
+--muted:#64748b;--line:#e2e8f0;--ok:#16a34a;--bad:#dc2626}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+background:var(--bg);color:var(--text);line-height:1.6}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+code{background:#eef2ff;color:var(--accent-d);padding:1px 6px;border-radius:4px;font-family:Consolas,monospace;font-size:.92em}
+.topbar{display:flex;align-items:center;gap:16px;background:var(--accent);color:#fff;padding:14px 24px;flex-wrap:wrap;position:sticky;top:0;z-index:10}
+.brand{color:#fff;font-weight:700;font-size:1.25rem;cursor:pointer}
+.tagline{color:#e0e7ff;font-size:.9rem}
+.ver{margin-left:auto;color:#c7d2fe;font-size:.85rem}
+.layout{display:flex;max-width:1200px;margin:0 auto;gap:24px;padding:24px;align-items:flex-start}
+.sidebar{flex:0 0 240px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;position:sticky;top:80px;max-height:calc(100vh - 100px);overflow-y:auto}
+.sidebar h3{font-size:.8rem;text-transform:uppercase;color:var(--muted);letter-spacing:.05em;margin-bottom:10px}
+.sidebar a{display:block;padding:8px 10px;border-radius:8px;color:var(--text);font-size:.9rem;margin-bottom:2px;cursor:pointer}
+.sidebar a:hover{background:#f1f5f9;text-decoration:none}
+.sidebar a.active{background:var(--accent);color:#fff;font-weight:600}
+.content{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:32px}
+.hero{text-align:center;padding:20px 0 32px}
+.hero h1{font-size:2rem;margin-bottom:10px}
+.hero p{color:var(--muted);max-width:640px;margin:0 auto}
+.byline{font-weight:600;color:var(--accent-d);margin-top:4px !important}
+.card-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:16px}
+.lesson-card{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:18px;cursor:pointer;transition:.15s}
+.lesson-card:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 6px 18px rgba(79,70,229,.12)}
+.lesson-card h2{font-size:1.05rem;margin-bottom:6px}
+.lesson-card p{color:var(--muted);font-size:.9rem;margin-bottom:12px}
+.lesson-card .go{color:var(--accent);font-weight:600;font-size:.9rem}
+.lesson-title{font-size:1.7rem;margin-bottom:6px}
+.lesson-summary{color:var(--muted);margin-bottom:24px}
+.block{margin:28px 0;padding-top:20px;border-top:1px solid var(--line)}
+.block h2{font-size:1.25rem;margin-bottom:14px}
+.theory-item{margin-bottom:14px}
+.theory-item h3{font-size:1rem;color:var(--accent-d);margin-bottom:4px}
+.chart-wrap{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:16px;height:340px}
+.chart-wrap canvas{max-height:308px}
+.note{color:var(--muted);font-size:.9rem;margin-top:10px}
+.problem{background:#fffbeb;border-left:4px solid #f59e0b;padding:12px 14px;border-radius:6px;margin-bottom:12px}
+.steps{padding-left:22px}.steps li{margin-bottom:6px}
+.quiz-item{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:14px}
+.quiz-item .q{margin-bottom:10px}
+.opt{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:6px;cursor:pointer}
+.opt:hover{background:#eef2ff}.opt input{accent-color:var(--accent)}
+.feedback{margin-top:8px;font-weight:600;font-size:.92rem}
+.feedback.ok{color:var(--ok)}.feedback.bad{color:var(--bad)}.feedback.warn{color:#b45309}
+.btn{display:inline-block;background:var(--accent);color:#fff;border:none;padding:10px 18px;border-radius:8px;font-size:.95rem;cursor:pointer;font-weight:600}
+.btn:hover{background:var(--accent-d)}
+.btn.ghost{background:#fff;color:var(--accent);border:1px solid var(--accent)}
+.score{margin-top:12px;font-weight:700;font-size:1.05rem}.score.ok{color:var(--ok)}
+.refs{padding-left:20px}.refs li{margin-bottom:6px}
+.lesson-nav{display:flex;justify-content:space-between;gap:12px;margin-top:32px;padding-top:20px;border-top:1px solid var(--line);flex-wrap:wrap}
+.footer{text-align:center;color:var(--muted);font-size:.85rem;padding:24px}
+.brief{background:#eef2ff;border:1px solid #c7d2fe;border-radius:12px;padding:16px 18px;margin-bottom:8px}
+.brief-tag{display:inline-block;background:var(--accent);color:#fff;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 10px;border-radius:20px;margin-bottom:8px}
+.brief p{color:#312e81;font-size:.96rem}
+.practice-item{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.sol-btn{margin-top:10px;padding:6px 14px;font-size:.85rem}
+.sol{margin-top:10px}
+.hidden{display:none}
+.jokes-list{padding-left:22px;margin-top:16px}
+.dd-caption{font-weight:600;color:var(--accent-d);margin:14px 0 8px}
+.dd-table-wrap{overflow-x:auto;margin-bottom:16px}
+.dd-table{border-collapse:collapse;width:100%;font-size:.9rem}
+.dd-table th{background:var(--accent);color:#fff;padding:8px 12px;text-align:left;white-space:nowrap}
+.dd-table td{border:1px solid var(--line);padding:6px 12px}
+.dd-table tbody tr:nth-child(even){background:var(--bg)}
+.dd-tabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 0}
+.dd-tab{background:var(--bg);color:var(--text);border:1px solid var(--line);border-bottom:none;
+padding:8px 14px;border-radius:8px 8px 0 0;cursor:pointer;font-size:.88rem;font-weight:600}
+.dd-tab.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+.dd-panel{border:1px solid var(--line);border-radius:0 8px 8px 8px;padding:16px;margin-bottom:14px}
+.code-block{background:#0f172a;color:#e2e8f0;padding:16px;border-radius:8px;overflow-x:auto;
+font-family:Consolas,"SF Mono",monospace;font-size:.85rem;line-height:1.5;white-space:pre}
+.code-block code{background:none;color:inherit;padding:0}
+.dd-interpret{background:#ecfdf5;border-left:4px solid #22c55e;border-radius:6px;padding:12px 14px;color:#065f46}
+.prof{background:linear-gradient(180deg,#faf5ff,#fff);border:1px solid #e9d5ff;border-radius:12px;padding:20px 24px}
+.prof>h2{color:#6b21a8}
+.prof-intuition{background:#f3e8ff;border-radius:10px;padding:14px 16px;margin-bottom:16px}
+.prof-tag{display:inline-block;background:#7c3aed;color:#fff;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;padding:3px 10px;border-radius:20px;margin-bottom:8px}
+.prof-intuition p{color:#4c1d95}
+.prof-sub{font-size:1rem;color:#6b21a8;margin:16px 0 8px}
+.pitfalls{margin-top:12px}
+.pitfall-list{list-style:none;padding:0}
+.pitfall-list li{background:#fef2f2;border-left:3px solid #ef4444;border-radius:6px;padding:9px 12px;margin-bottom:8px;color:#7f1d1d;font-size:.94rem}
+.lvl{display:inline-block;font-size:.68rem;font-weight:700;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:12px;margin-right:6px;color:#fff;vertical-align:middle}
+.lvl-easy{background:#22c55e}.lvl-medium{background:#f59e0b}.lvl-hard{background:#ef4444}
+.ai-box{position:relative}
+.copy-btn{position:absolute;top:10px;right:10px;padding:5px 12px;font-size:.8rem;z-index:2}
+.prompt-block{background:#fef3c7;color:#78350f;border:1px solid #fcd34d;border-radius:8px;
+padding:16px;padding-top:40px;white-space:pre-wrap;font-family:inherit;font-size:.9rem;line-height:1.55;margin:0}
+.jokes-list li{margin-bottom:8px}
+.tree-q{font-weight:700;font-size:1.1rem;margin:8px 0 14px}
+.tree-opts{display:flex;flex-direction:column;gap:10px;max-width:520px}
+.tree-opt{text-align:left}
+.tree-crumbs{color:var(--muted);font-size:.85rem;margin-bottom:12px}
+.tree-leaf{background:#ecfdf5;border:1px solid #6ee7b7;border-radius:10px;padding:18px;font-weight:600;color:#065f46}
+.tree-leaf span{font-size:1.25rem;color:var(--accent-d)}
+@media(max-width:800px){.layout{flex-direction:column}.sidebar{position:static;width:100%;flex:none;max-height:none}}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <span class="brand" onclick="showHome()">📊 Master Stats Lab</span>
+  <span class="tagline">by Dr. Ngoun Sethykun — theory · practice · graphs</span>
+  <span class="ver">v7.0</span>
+</header>
+<div class="layout">
+  <aside class="sidebar"><h3>Topics</h3><nav id="nav"></nav></aside>
+  <main class="content" id="content"></main>
+</div>
+<footer class="footer"><p>Master Stats Lab · Dr. Ngoun Sethykun / Sharing is caring!</p></footer>
+<script>
+// ==================== MASTER STATS LAB — CONTENT ====================
+const LESSONS = [
+{
+  slug:"variables", title:"1. Variables",
+  summary:"The building blocks of data — what we measure and the forms it takes.",
+  brief:"<b>Why:</b> Every analysis starts by knowing what type of data you have. <b>When:</b> Use this at the very start of any study, because the variable type decides which chart, summary, and test are even allowed. Averaging a category like 'blood type' is meaningless — so you classify first, analyse second.",
+  theory:[
+    ["What is a variable?","A <b>variable</b> is any characteristic that can take different values across people, objects, or time — height, income, colour, or a test score."],
+    ["Quantitative vs Qualitative","<b>Quantitative</b> variables are numeric (age, weight). <b>Qualitative / categorical</b> variables are labels (gender, country, blood type)."],
+    ["Discrete vs Continuous","Quantitative splits into <b>discrete</b> — countable whole numbers (number of children) — and <b>continuous</b> — any value on a scale (temperature, time)."],
+    ["Levels of measurement","<b>Nominal</b> (labels, no order: colour). <b>Ordinal</b> (ordered, unequal gaps: rankings). <b>Interval</b> (ordered, equal gaps, no true zero: °C). <b>Ratio</b> (equal gaps + true zero: weight, income)."],
+    ["Independent vs Dependent","The <b>independent</b> variable is what you change or group by; the <b>dependent</b> variable is the outcome you measure."]
+  ],
+  example:{problem:"Classify: (a) number of cars in a car park, (b) satisfaction rated 1–5, (c) body temperature in °C.",
+    steps:["(a) Quantitative, discrete, ratio — you count whole cars.","(b) Qualitative-ordinal — ordered ranks with unequal gaps.","(c) Quantitative, continuous, interval — 0°C is not 'no temperature'."]},
+  practice:[
+    {problem:"Is 'postal code' quantitative or qualitative?",
+     steps:["Postal codes are labels, not quantities — you don't average them.","So they are qualitative (nominal), even though they look like numbers."]},
+    {problem:"Classify 'race finishing position (1st, 2nd, 3rd)'.",
+     steps:["There is a clear order, but gaps between places aren't equal.","So it is qualitative-ordinal."]},
+    {problem:"In 'fertiliser type → crop yield', name the independent and dependent variable.",
+     steps:["Fertiliser type is what you change → independent.","Crop yield is the measured outcome → dependent."]}
+  ],
+  graph:"variables",
+  quiz:[
+    {q:"'Blood type (A, B, AB, O)' is which level of measurement?",options:["Ratio","Interval","Nominal","Ordinal"],answer:2},
+    {q:"Number of students in a class is…",options:["Continuous","Discrete","Ordinal","Nominal"],answer:1},
+    {q:"The outcome you measure in an experiment is the… variable.",options:["Independent","Dependent","Control","Nominal"],answer:1},
+    {q:"Temperature in °C is which level of measurement?",options:["Nominal","Ordinal","Interval","Ratio"],answer:2},
+    {q:"Which is a continuous variable?",options:["Number of pets","Shoe size (whole)","Time to run 100m","Jersey number"],answer:2},
+    {q:"'Movie star rating (1–5 stars)' is best described as…",options:["Nominal","Ordinal","Ratio","Continuous"],answer:1}
+  ],
+  references:[["OpenStax – Sampling and Data","https://openstax.org/books/introductory-statistics/pages/1-introduction"]]
+},
+{
+  slug:"descriptive", title:"2. Descriptive Statistics",
+  summary:"Summarising data with centre and spread — mean, median, mode, variance, SD.",
+  brief:"<b>Why:</b> Raw data is hard to read; a few numbers tell the story instantly. <b>When:</b> Use whenever you first explore a dataset — to report a typical value (centre) and how much values differ (spread) before any deeper test. It's the 'get to know your data' step everyone does first.",
+  theory:[
+    ["Purpose","<b>Descriptive statistics</b> condense a dataset into a few numbers and charts so you can see its shape at a glance."],
+    ["Centre","<b>Mean</b> <code>x̄ = Σx/n</code> (sensitive to outliers). <b>Median</b> = middle sorted value (robust). <b>Mode</b> = most frequent value."],
+    ["Spread","<b>Range</b> = max − min. <b>Variance</b> <code>s² = Σ(x−x̄)²/(n−1)</code>. <b>Standard deviation</b> <code>s = √s²</code>, in the same units as the data."],
+    ["Quartiles & IQR","Data split into four parts by Q1, Q2 (median), Q3. The <b>interquartile range</b> <code>IQR = Q3 − Q1</code> covers the middle 50%."],
+    ["Shape","<b>Skew</b> describes asymmetry; <b>kurtosis</b> describes tail heaviness. A boxplot shows centre, spread, and outliers together."]
+  ],
+  example:{problem:"For 4, 8, 6, 5, 3, 8, 2 find mean, median, mode and sample SD.",
+    steps:["Sort: 2,3,4,5,6,8,8","Mean = 36/7 ≈ 5.14","Median = 5, Mode = 8","Deviations² sum = 30.86 → s² = 30.86/6 ≈ 5.14 → s ≈ 2.27"]},
+  practice:[
+    {problem:"Find the mean and median of 3, 7, 7, 2, 6.",
+     steps:["Mean = (3+7+7+2+6)/5 = 25/5 = 5","Sort: 2,3,6,7,7 → median = 6 (middle value)"]},
+    {problem:"Find the range and IQR of 1, 3, 5, 7, 9, 11, 13, 15.",
+     steps:["Range = 15 − 1 = 14","Q1 = 4, Q3 = 12","IQR = 12 − 4 = 8"]},
+    {problem:"Why report the median instead of the mean for house prices?",
+     steps:["A few very expensive homes pull the mean upward.","The median (middle price) is not distorted by those extremes → more 'typical'."]}
+  ],
+  graph:"descriptive",
+  quiz:[
+    {q:"Which is most affected by an outlier?",options:["Median","Mode","Mean","IQR"],answer:2},
+    {q:"IQR equals…",options:["Q3 − Q1","max − min","Q2 − Q1","Q3 + Q1"],answer:0},
+    {q:"Standard deviation is measured in…",options:["Squared units","The same units as the data","No units","Percent"],answer:1},
+    {q:"The middle 50% of data is covered by the…",options:["Range","IQR","Mean","Mode"],answer:1},
+    {q:"For 2, 2, 4, 6, the mean is…",options:["2","3.5","4","6"],answer:1},
+    {q:"A dataset where all values are equal has a standard deviation of…",options:["1","0","The mean","Undefined"],answer:1}
+  ],
+  references:[["Khan Academy – Summarizing data","https://www.khanacademy.org/math/statistics-probability/summarizing-quantitative-data"]]
+},
+{
+  slug:"outliers", title:"3. Outliers",
+  summary:"Spotting unusual values with the IQR rule and z-scores.",
+  brief:"<b>Why:</b> A single wrong or extreme value can wreck an average, a correlation, or a model. <b>When:</b> Check for outliers right after summarising, before running tests or fitting lines. Catching them early prevents misleading results — and sometimes the outlier itself is the key finding (fraud, a fault, a rare event).",
+  theory:[
+    ["What is an outlier?","An <b>outlier</b> is a value far from the rest of the data. It may be a genuine extreme, a measurement error, or a data-entry mistake."],
+    ["IQR method","Compute Q1, Q3, IQR. Any value below <code>Q1 − 1.5×IQR</code> or above <code>Q3 + 1.5×IQR</code> is a suspected outlier."],
+    ["Z-score method","For roughly normal data, values with <code>|z| > 3</code> (more than 3 SD from the mean) are treated as outliers."],
+    ["What to do","Don't delete blindly. Investigate: fix errors, keep genuine extremes, and report results with and without them if they change conclusions."]
+  ],
+  example:{problem:"Data: 10, 12, 12, 13, 14, 15, 40. Is 40 an outlier by the IQR rule?",
+    steps:["Q1 = 12, Q3 = 15 → IQR = 3","Upper fence = 15 + 1.5×3 = 19.5","40 > 19.5 → yes, 40 is an outlier."]},
+  practice:[
+    {problem:"Data: 5, 6, 7, 8, 9, 30. Find the upper IQR fence.",
+     steps:["Q1 = 6, Q3 = 9 → IQR = 3","Upper fence = 9 + 1.5×3 = 13.5","30 > 13.5 → 30 is an outlier."]},
+    {problem:"A value has z = −3.5 in normal data. Outlier?",
+     steps:["|z| = 3.5 > 3.","Yes — more than 3 SD below the mean, so it's an outlier."]},
+    {problem:"An outlier is caused by a typo (a weight of 700 kg). What do you do?",
+     steps:["It's a data-entry error, not a real value.","Correct it if possible, or remove it and note why — don't keep a known typo."]}
+  ],
+  graph:"outliers",
+  quiz:[
+    {q:"The IQR outlier fence multiplier is…",options:["1.0","1.5","2.0","3.0"],answer:1},
+    {q:"By the z-score rule, an outlier usually has…",options:["|z| > 1","|z| > 2","|z| > 3","z = 0"],answer:2},
+    {q:"The best first response to an outlier is to…",options:["Delete it","Investigate it","Ignore it","Double it"],answer:1},
+    {q:"Outliers most strongly distort the…",options:["Median","Mean","Mode","IQR"],answer:1},
+    {q:"The lower IQR fence is…",options:["Q1 − 1.5×IQR","Q1 + 1.5×IQR","Q3 − 1.5×IQR","min − IQR"],answer:0}
+  ],
+  references:[["NIST – Detection of Outliers","https://www.itl.nist.gov/div898/handbook/prc/section1/prc16.htm"]]
+},
+{
+  slug:"normal", title:"4. Normal Distribution",
+  summary:"The bell curve, z-scores, and the 68–95–99.7 rule.",
+  brief:"<b>Why:</b> So many real measurements (heights, errors, test scores) pile up in a bell shape, and most classic tests assume it. <b>When:</b> Use the normal model to find probabilities ('what % score above 90?'), to standardise values with z-scores, and as the backbone of z-tests, confidence intervals, and much of inference.",
+  theory:[
+    ["The bell curve","The <b>normal distribution</b> is symmetric and bell-shaped, defined by mean μ and standard deviation σ. Many natural measurements follow it."],
+    ["Empirical rule","~<b>68%</b> of data lie within 1σ, ~<b>95%</b> within 2σ, ~<b>99.7%</b> within 3σ of the mean."],
+    ["Z-score","<code>z = (x − μ)/σ</code> — how many SDs a value sits from the mean. Lets you compare across different distributions."],
+    ["Standard normal","μ = 0, σ = 1. Converting to z-scores standardises any normal distribution and lets you use z-tables."]
+  ],
+  example:{problem:"Scores are normal with μ=70, σ=8. Find the z-score for 86.",
+    steps:["z = (86 − 70)/8 = 16/8 = 2","86 is 2 SD above the mean.","Only ~2.5% of scores exceed 2σ, so 86 is uncommonly high."]},
+  practice:[
+    {problem:"μ=100, σ=15 (IQ). What z-score is an IQ of 130?",
+     steps:["z = (130 − 100)/15 = 30/15 = 2","130 is 2 SD above average — top ~2.5%."]},
+    {problem:"About what % of data lies between μ−1σ and μ+1σ?",
+     steps:["By the empirical rule, ~68% lies within 1σ of the mean."]},
+    {problem:"Student A scored z=1.2 on Test 1, B scored z=0.9 on Test 2. Who did relatively better?",
+     steps:["Higher z = further above that test's mean.","A (z=1.2) performed relatively better than B (z=0.9)."]}
+  ],
+  graph:"normal",
+  quiz:[
+    {q:"~95% of data fall within… of the mean.",options:["1σ","2σ","3σ","0.5σ"],answer:1},
+    {q:"Standard normal has mean & SD…",options:["0 and 1","1 and 0","70 and 8","0 and 0"],answer:0},
+    {q:"A z-score of 0 means the value equals the…",options:["Minimum","Mean","Maximum","Mode only"],answer:1},
+    {q:"~99.7% of normal data lie within…",options:["1σ","2σ","3σ","4σ"],answer:2},
+    {q:"A z-score of +2 means a value is…",options:["2 below the mean","2 SD above the mean","At the mean","An error"],answer:1},
+    {q:"The normal distribution is…",options:["Right-skewed","Left-skewed","Symmetric","U-shaped"],answer:2}
+  ],
+  references:[["OpenStax – The Normal Distribution","https://openstax.org/books/introductory-statistics/pages/6-introduction"]]
+},
+{
+  slug:"ttest", title:"5. T-Test",
+  summary:"Comparing means when the population SD is unknown and samples are small.",
+  brief:"<b>Why:</b> In real life you almost never know the population's true spread, and samples are often small — the t-test handles exactly that. <b>When:</b> Use it to compare a mean to a target, compare two groups (treatment vs control), or compare before/after on the same people. It's the everyday workhorse for comparing averages.",
+  theory:[
+    ["When to use","Use a <b>t-test</b> to compare means when the population standard deviation is unknown (the usual case) — especially with small samples."],
+    ["Three types","<b>One-sample</b>: sample mean vs a known value. <b>Independent two-sample</b>: two separate groups. <b>Paired</b>: same subjects measured twice (before/after)."],
+    ["The statistic","One-sample: <code>t = (x̄ − μ₀)/(s/√n)</code>. It measures how far the sample mean is from μ₀ in standard-error units."],
+    ["Degrees of freedom","<code>df = n − 1</code> for one sample. The t-distribution has heavier tails than the normal and approaches it as df grows."],
+    ["Decision","Compare the p-value to α (e.g. 0.05), or |t| to the critical value. If p ≤ α, reject H₀."]
+  ],
+  example:{problem:"n=16, x̄=52, s=8, test H₀: μ=50 at α=0.05.",
+    steps:["Standard error = s/√n = 8/4 = 2","t = (52 − 50)/2 = 1.0","df = 15 → critical t ≈ 2.13 (two-tailed)","|1.0| < 2.13 → fail to reject H₀."]},
+  practice:[
+    {problem:"n=25, x̄=48, s=10, test H₀: μ=50. Compute t.",
+     steps:["SE = 10/√25 = 10/5 = 2","t = (48 − 50)/2 = −1.0","df = 24; |−1.0| is small → likely fail to reject H₀."]},
+    {problem:"Which t-test: comparing blood pressure of the SAME patients before and after a drug?",
+     steps:["Same subjects measured twice → paired.","Use a paired t-test."]},
+    {problem:"Which t-test: comparing average height of men vs women (separate groups)?",
+     steps:["Two independent groups.","Use an independent two-sample t-test."]}
+  ],
+  graph:"ttest",
+  quiz:[
+    {q:"A t-test is used instead of a z-test mainly when…",options:["n is huge","Population SD is unknown","Data are categorical","μ is unknown only"],answer:1},
+    {q:"Before/after measurements on the same people use a… t-test.",options:["One-sample","Paired","Independent","Z"],answer:1},
+    {q:"Degrees of freedom for a one-sample t-test is…",options:["n","n − 1","n + 1","2n"],answer:1},
+    {q:"Compared to the normal curve, the t-distribution has…",options:["Lighter tails","Heavier tails","No tails","The same shape always"],answer:1},
+    {q:"As df increases, the t-distribution approaches the…",options:["Uniform","Normal","Chi-square","F"],answer:1}
+  ],
+  references:[["OpenStax – The t-Distribution","https://openstax.org/books/introductory-statistics/pages/8-introduction"]]
+},
+{
+  slug:"ztest", title:"6. Z-Test",
+  summary:"Comparing means or proportions when the population SD is known or n is large.",
+  brief:"<b>Why:</b> With big samples or a known spread, the normal curve gives quick, exact answers. <b>When:</b> Use a z-test for large-sample mean comparisons, and especially for proportions — pass rates, conversion rates, yes/no survey results. Common in A/B testing and quality control where n is large.",
+  theory:[
+    ["When to use","Use a <b>z-test</b> when the population standard deviation σ is known, or the sample is large (n ≥ 30) so the sample SD is reliable."],
+    ["The statistic","<code>z = (x̄ − μ₀)/(σ/√n)</code>. Under H₀ this follows the standard normal distribution."],
+    ["Critical values","Two-tailed at α=0.05 → ±1.96. One-tailed at α=0.05 → 1.645. Reject H₀ if |z| exceeds the critical value."],
+    ["Proportions","For a proportion: <code>z = (p̂ − p₀)/√(p₀(1−p₀)/n)</code> — used for yes/no data like pass rates or click-through rates."],
+    ["z vs t","With large n the t- and z-distributions nearly coincide, so results agree; with small n use the t-test."]
+  ],
+  example:{problem:"σ=10, n=100, x̄=103, test H₀: μ=100 at α=0.05 (two-tailed).",
+    steps:["Standard error = σ/√n = 10/10 = 1","z = (103 − 100)/1 = 3.0","Critical value = ±1.96","|3.0| > 1.96 → reject H₀."]},
+  practice:[
+    {problem:"σ=20, n=64, x̄=105, test H₀: μ=100. Compute z.",
+     steps:["SE = 20/√64 = 20/8 = 2.5","z = (105 − 100)/2.5 = 2.0","|2.0| > 1.96 → reject H₀ at α=0.05."]},
+    {problem:"A coin flipped 100 times lands heads 60 times. Test H₀: p=0.5.",
+     steps:["p̂ = 0.60; SE = √(0.5×0.5/100) = 0.05","z = (0.60 − 0.50)/0.05 = 2.0","|2.0| > 1.96 → evidence the coin is biased."]},
+    {problem:"Why prefer a z-test over a t-test with n = 5000?",
+     steps:["With huge n the sample SD is very reliable and t ≈ z.","The z-test is simpler and gives essentially the same result."]}
+  ],
+  graph:"ztest",
+  quiz:[
+    {q:"The two-tailed z critical value at α=0.05 is…",options:["1.28","1.645","1.96","2.58"],answer:2},
+    {q:"A z-test assumes the population SD is…",options:["Unknown","Known (or n large)","Zero","Negative"],answer:1},
+    {q:"z-tests are preferred over t-tests when…",options:["n is small","n is large","Data are ranked","μ is unknown"],answer:1},
+    {q:"The one-tailed z critical value at α=0.05 is about…",options:["1.28","1.645","1.96","2.33"],answer:1},
+    {q:"A z-test for a proportion is used for… data.",options:["Continuous","Yes/no (binary)","Ranked","Paired"],answer:1}
+  ],
+  references:[["Khan Academy – Significance tests","https://www.khanacademy.org/math/statistics-probability/significance-tests-one-sample"]]
+},
+{
+  slug:"ftest", title:"7. F-Test & ANOVA",
+  summary:"Comparing variances, and comparing 3+ group means with ANOVA.",
+  brief:"<b>Why:</b> Running many t-tests to compare several groups inflates false positives; ANOVA tests them all at once. <b>When:</b> Use ANOVA with three or more groups to see if any mean differs (three teaching methods, four fertilisers). Use the plain F-test to compare two variances/spreads.",
+  theory:[
+    ["The F-statistic","The <b>F-test</b> compares two variances as a ratio: <code>F = s₁²/s₂²</code>. It is always positive and its distribution depends on two df values."],
+    ["ANOVA","<b>Analysis of Variance</b> uses F to test whether several group means are equal by comparing variation <i>between</i> groups to variation <i>within</i> groups."],
+    ["The ratio","<code>F = MS_between / MS_within</code>. Large F means groups differ more than random noise would explain."],
+    ["Decision","If p ≤ α, reject H₀ (at least one mean differs). ANOVA tells you a difference exists, not which groups differ — that needs post-hoc tests (e.g. Tukey)."],
+    ["Assumptions","Independent samples, roughly normal groups, and similar variances (homogeneity)."]
+  ],
+  example:{problem:"Between-group MS = 40, within-group MS = 8. Compute F and interpret.",
+    steps:["F = MS_between / MS_within = 40 / 8 = 5.0","Compare to the critical F for the df.","If 5.0 exceeds the critical value, reject H₀ → the group means differ."]},
+  practice:[
+    {problem:"MS_between = 24, MS_within = 6. Compute F.",
+     steps:["F = 24 / 6 = 4.0","Larger F → stronger evidence the group means differ."]},
+    {problem:"You compare 4 diets' average weight loss. Which test?",
+     steps:["Four groups, comparing means → one-way ANOVA (F-test).","Not multiple t-tests, which would inflate error."]},
+    {problem:"ANOVA is significant. Can you say which two groups differ?",
+     steps:["No — ANOVA only says 'at least one differs'.","Run a post-hoc test (e.g. Tukey) to find which pairs differ."]}
+  ],
+  graph:"ftest",
+  quiz:[
+    {q:"ANOVA compares…",options:["Two proportions","Three or more means","Two medians","Categorical counts"],answer:1},
+    {q:"The F-statistic is a ratio of two…",options:["Means","Variances","Medians","Proportions"],answer:1},
+    {q:"A significant ANOVA tells you…",options:["Which group differs","That at least one mean differs","All means are equal","Nothing"],answer:1},
+    {q:"An F-value is always…",options:["Negative","Between −1 and 1","Positive","Zero"],answer:2},
+    {q:"To find WHICH groups differ after ANOVA, you use a…",options:["z-test","Post-hoc test","Chi-square","Correlation"],answer:1}
+  ],
+  references:[["OpenStax – F Distribution and One-Way ANOVA","https://openstax.org/books/introductory-statistics/pages/13-introduction"]]
+},
+{
+  slug:"chisquare", title:"8. Chi-Square",
+  summary:"Tests for categorical data — goodness of fit and independence.",
+  brief:"<b>Why:</b> t- and z-tests need numbers; when your data are counts in categories, chi-square is the tool. <b>When:</b> Use goodness-of-fit to check if a die/spinner/distribution matches expectations, and the test of independence to see if two categorical traits are linked (does gender relate to product choice?). Common in surveys and market research.",
+  theory:[
+    ["Categorical tests","The <b>chi-square (χ²) test</b> works with counts in categories, comparing what you <i>observed</i> to what you'd <i>expect</i>."],
+    ["The statistic","<code>χ² = Σ (O − E)² / E</code>, summed over all cells, where O = observed and E = expected counts."],
+    ["Goodness of fit","Tests whether one categorical variable matches an expected distribution (e.g. is a die fair?)."],
+    ["Test of independence","Uses a contingency table to test whether two categorical variables are related (e.g. gender vs product choice)."],
+    ["Degrees of freedom","Goodness of fit: <code>df = k − 1</code>. Independence: <code>df = (rows−1)(cols−1)</code>. Large χ² → reject H₀."]
+  ],
+  example:{problem:"A die rolled 60 times; each face expected 10. Face counts give Σ(O−E)²/E = 12.6. df?",
+    steps:["Categories k = 6 → df = k − 1 = 5","Critical χ² at α=0.05, df=5 ≈ 11.07","12.6 > 11.07 → reject H₀: the die is not fair."]},
+  practice:[
+    {problem:"One cell: observed O = 30, expected E = 20. Its contribution to χ²?",
+     steps:["(O−E)²/E = (30−20)²/20 = 100/20 = 5.0"]},
+    {problem:"A 2×3 contingency table — how many degrees of freedom?",
+     steps:["df = (rows−1)(cols−1) = (2−1)(3−1) = 1×2 = 2"]},
+    {problem:"You test if eye colour and hair colour are related. Which chi-square test?",
+     steps:["Two categorical variables in a table → chi-square test of independence."]}
+  ],
+  graph:"chisquare",
+  quiz:[
+    {q:"Chi-square tests are used for… data.",options:["Continuous","Categorical","Ordinal only","Paired"],answer:1},
+    {q:"The chi-square formula sums…",options:["(O−E)/E","(O−E)²/E","O²/E","O − E"],answer:1},
+    {q:"For a 3×4 contingency table, df =…",options:["12","7","6","5"],answer:2},
+    {q:"Testing if a die is fair is a chi-square…",options:["Test of independence","Goodness-of-fit test","t-test","z-test"],answer:1},
+    {q:"In χ², O and E stand for…",options:["Odd/Even","Observed/Expected","Over/Even","Origin/End"],answer:1}
+  ],
+  references:[["OpenStax – The Chi-Square Distribution","https://openstax.org/books/introductory-statistics/pages/11-introduction"]]
+},
+{
+  slug:"hypothesis", title:"9. Hypothesis Testing",
+  summary:"Null vs alternative, p-values, significance, and the testing workflow.",
+  brief:"<b>Why:</b> It's the formal way to decide whether an effect is real or just chance. <b>When:</b> Use it any time you have a claim to check with data — a new drug works, a change boosts sales, a coin is biased. Nearly every test in this lab (t, z, F, χ²) plugs into this same decision framework.",
+  theory:[
+    ["The idea","A <b>hypothesis test</b> checks whether sample evidence is strong enough to reject a default claim about a population."],
+    ["Hypotheses","<b>H₀</b> = 'no effect / no difference'. <b>H₁</b> = what you suspect. Tests can be one-tailed (direction) or two-tailed."],
+    ["Significance α","α (often 0.05) is the threshold — the risk you accept of wrongly rejecting a true H₀."],
+    ["p-value","Probability of data this extreme if H₀ were true. If <code>p ≤ α</code>, reject H₀; else fail to reject."],
+    ["Workflow","1) State H₀/H₁. 2) Choose α & test. 3) Compute the statistic & p-value. 4) Decide. 5) Interpret in context."]
+  ],
+  example:{problem:"Battery claim = 10 h. Test gives p = 0.02, α = 0.05. Conclusion?",
+    steps:["H₀: μ = 10; H₁: μ ≠ 10.","Compare p to α: 0.02 ≤ 0.05.","Reject H₀.","Evidence suggests true life differs from 10 h."]},
+  practice:[
+    {problem:"A test gives p = 0.08 with α = 0.05. Decision?",
+     steps:["0.08 > 0.05.","Fail to reject H₀ — not enough evidence for an effect."]},
+    {problem:"Write H₀ and H₁ for 'a new website design increases sign-ups'.",
+     steps:["H₀: sign-up rate is unchanged (new = old).","H₁: new design increases sign-ups (one-tailed)."]},
+    {problem:"Does a small p-value prove the effect is large?",
+     steps:["No — p tells you the effect is likely real, not big.","A tiny effect can be significant with a huge sample; report effect size too."]}
+  ],
+  graph:"hypothesis",
+  quiz:[
+    {q:"If p ≤ α you…",options:["Accept H₀","Reject H₀","Ignore data","Enlarge α"],answer:1},
+    {q:"H₀ typically states…",options:["A big effect","No effect / no difference","The alternative","The p-value"],answer:1},
+    {q:"A common significance level is…",options:["0.5","0.05","5","50"],answer:1},
+    {q:"The p-value is the probability of data this extreme if…",options:["H₁ is true","H₀ is true","α = 0","n = 1"],answer:1},
+    {q:"'Fail to reject H₀' means…",options:["H₀ is proven true","Not enough evidence against H₀","H₁ is true","The test failed"],answer:1}
+  ],
+  references:[["OpenStax – Hypothesis Testing","https://openstax.org/books/introductory-statistics/pages/9-introduction"]]
+},
+{
+  slug:"type-errors", title:"10. Type I / II Errors",
+  summary:"The two ways a test can go wrong — and statistical power.",
+  brief:"<b>Why:</b> No test is perfect; understanding its two error types helps you set risks sensibly. <b>When:</b> Think about these whenever the cost of a mistake matters — a false alarm (Type I) vs a missed real effect (Type II). It also drives sample-size planning: pick n to get enough power to catch a real effect.",
+  theory:[
+    ["Type I error","Rejecting a <b>true</b> H₀ — a false positive. Its probability equals α, the significance level you set."],
+    ["Type II error","Failing to reject a <b>false</b> H₀ — a false negative. Its probability is β."],
+    ["Power","<b>Power</b> = 1 − β: the chance of correctly detecting a real effect. Higher power is better."],
+    ["The trade-off","Lowering α (fewer false positives) tends to raise β (more false negatives). Larger samples improve both."],
+    ["Boosting power","Increase sample size, use a larger effect, reduce measurement noise, or raise α if false positives are acceptable."]
+  ],
+  example:{problem:"A medical test flags a healthy patient as sick. Which error is this?",
+    steps:["H₀ = 'patient is healthy' (no disease).","The test rejected a true H₀.","That is a Type I error (false positive)."]},
+  practice:[
+    {problem:"A fire alarm fails to sound during a real fire. Which error?",
+     steps:["H₀ = 'no fire'; there IS a fire (H₀ false).","Failing to reject a false H₀ → Type II error."]},
+    {problem:"If β = 0.15, what is the power?",
+     steps:["Power = 1 − β = 1 − 0.15 = 0.85 (85%)."]},
+    {problem:"Name one way to increase power without changing α.",
+     steps:["Increase the sample size (n).","This reduces β and raises power while α stays fixed."]}
+  ],
+  graph:"type-errors",
+  quiz:[
+    {q:"A false positive is a…",options:["Type I error","Type II error","Power","Correct call"],answer:0},
+    {q:"Power equals…",options:["α","β","1 − β","1 − α"],answer:2},
+    {q:"Increasing sample size generally…",options:["Lowers power","Raises power","Has no effect","Raises β"],answer:1},
+    {q:"A false negative (missing a real effect) is a…",options:["Type I error","Type II error","Power gain","Correct call"],answer:1},
+    {q:"The probability of a Type I error equals…",options:["β","α","1−β","p"],answer:1}
+  ],
+  references:[["Khan Academy – Type I and II errors","https://www.khanacademy.org/math/statistics-probability/significance-tests-one-sample"]]
+},
+{
+  slug:"correlation", title:"11. Correlation",
+  summary:"Measuring the strength and direction of a linear relationship.",
+  brief:"<b>Why:</b> Before predicting, you want to know if two things even move together, and how strongly. <b>When:</b> Use correlation to explore relationships — study hours vs grades, ad spend vs sales — as a quick first look before regression. Just remember it measures association, not cause.",
+  theory:[
+    ["Correlation coefficient","<b>Pearson's r</b> ranges from −1 to +1. Near +1 = strong positive, near −1 = strong negative, near 0 = no linear relation."],
+    ["Reading r","|r| 0.0–0.3 weak, 0.3–0.7 moderate, 0.7–1.0 strong. The sign shows direction, the magnitude shows strength."],
+    ["r²","The <b>coefficient of determination</b> r² is the proportion of variance in one variable explained by the other."],
+    ["Causation caveat","<b>Correlation ≠ causation.</b> A hidden third variable or coincidence can create a correlation with no causal link."],
+    ["Spearman","For ranked or non-linear monotonic data, <b>Spearman's rank correlation</b> is used instead of Pearson."]
+  ],
+  example:{problem:"Study hours vs exam score give r = 0.8. Interpret r and r².",
+    steps:["r = 0.8 → strong positive linear relationship.","r² = 0.64 → 64% of score variance is explained by study hours.","But this alone does not prove studying causes higher scores."]},
+  practice:[
+    {problem:"r = 0.5. What fraction of variance is explained?",
+     steps:["r² = 0.5² = 0.25 → 25% of variance explained."]},
+    {problem:"Ice-cream sales and drownings both rise in summer. Does ice cream cause drowning?",
+     steps:["No — a third variable (hot weather) drives both.","Correlation without causation (a confounder)."]},
+    {problem:"Interpret r = −0.15.",
+     steps:["Negative sign → as one rises, the other slightly falls.","|r| = 0.15 is weak → almost no linear relationship."]}
+  ],
+  graph:"correlation",
+  quiz:[
+    {q:"Pearson's r ranges from…",options:["0 to 1","−1 to 1","−∞ to ∞","0 to 100"],answer:1},
+    {q:"r = −0.9 indicates a…",options:["Weak positive","Strong negative","No","Strong positive"],answer:1},
+    {q:"r² of 0.49 means… of variance is explained.",options:["49%","70%","24%","51%"],answer:0},
+    {q:"An r near 0 means…",options:["Strong link","No linear relationship","Perfect link","An error"],answer:1},
+    {q:"For ranked/monotonic data you use…",options:["Pearson","Spearman","Chi-square","z-test"],answer:1},
+    {q:"Correlation proves…",options:["Causation","Association, not causation","Nothing ever","H₀"],answer:1}
+  ],
+  references:[["OpenStax – Linear Regression and Correlation","https://openstax.org/books/introductory-statistics/pages/12-introduction"]]
+},
+{
+  slug:"regression", title:"12. Linear Regression",
+  summary:"Fitting a straight line to predict one variable from another.",
+  brief:"<b>Why:</b> Correlation says two things move together; regression turns that into an equation you can predict with. <b>When:</b> Use it to estimate or forecast one variable from another — predict sales from ad spend, weight from height — and to quantify how much y changes per unit of x (the slope).",
+  theory:[
+    ["The model","<b>Simple linear regression</b> fits <code>ŷ = b₀ + b₁x</code>: b₀ is the intercept, b₁ the slope (change in y per unit x)."],
+    ["Least squares","The best-fit line minimises the sum of squared vertical distances (residuals) between points and the line."],
+    ["Slope meaning","b₁ > 0 means y rises with x; b₁ < 0 means it falls. b₀ is the predicted y when x = 0."],
+    ["Fit quality","<b>r²</b> measures how well the line fits (fraction of variance explained). Residual plots check assumptions."],
+    ["Prediction caution","Predicting outside the range of your data (extrapolation) is risky — the linear pattern may not hold there."]
+  ],
+  example:{problem:"ŷ = 30 + 5x predicts score from study hours. Predict for x = 4.",
+    steps:["Substitute x = 4: ŷ = 30 + 5×4","ŷ = 30 + 20 = 50","Each extra hour adds 5 points (the slope)."]},
+  practice:[
+    {problem:"ŷ = 2 + 3x. Predict y when x = 10.",
+     steps:["ŷ = 2 + 3×10 = 2 + 30 = 32"]},
+    {problem:"In ŷ = 50 − 4x, what does the slope −4 mean?",
+     steps:["For each 1-unit rise in x, y falls by 4.","The relationship is negative (downward line)."]},
+    {problem:"Your data covers x from 1–10. Is predicting at x = 40 safe?",
+     steps:["x = 40 is far outside the data range → extrapolation.","Risky: the linear pattern may not hold there."]}
+  ],
+  graph:"regression",
+  quiz:[
+    {q:"In ŷ = b₀ + b₁x, b₁ is the…",options:["Intercept","Slope","Residual","Error"],answer:1},
+    {q:"Least-squares minimises the sum of squared…",options:["Slopes","Residuals","Means","x-values"],answer:1},
+    {q:"Predicting far outside the data range is called…",options:["Interpolation","Extrapolation","Correlation","Rounding"],answer:1},
+    {q:"b₀ is the predicted y when…",options:["x = 1","x = 0","y = 0","x = mean"],answer:1},
+    {q:"A negative slope means as x increases, y…",options:["Increases","Decreases","Stays flat","Doubles"],answer:1}
+  ],
+  references:[["OpenStax – The Regression Equation","https://openstax.org/books/introductory-statistics/pages/12-3-the-regression-equation"]]
+},
+{
+  slug:"nonlinear", title:"13. Non-Linear Regression",
+  summary:"Curved relationships — polynomial, exponential, and logarithmic fits.",
+  brief:"<b>Why:</b> Many real patterns curve — populations grow exponentially, learning shows diminishing returns — and a straight line fits them badly. <b>When:</b> Use non-linear models when a scatter plot bends: growth/decay (exponential), levelling off (logarithmic), or a single hump/dip (quadratic). Plot first, then pick the curve that matches.",
+  theory:[
+    ["Beyond straight lines","When data curve, a straight line fits poorly. <b>Non-linear regression</b> fits curved models to capture the true pattern."],
+    ["Common forms","<b>Polynomial</b> <code>y = a + bx + cx²</code>, <b>exponential</b> <code>y = a·e^{bx}</code> (growth/decay), <b>logarithmic</b> <code>y = a + b·ln(x)</code> (diminishing returns)."],
+    ["Choosing a model","Plot the data first. Growth that accelerates suggests exponential; levelling off suggests logarithmic; a single bend suggests quadratic."],
+    ["Linearising","Some models become linear after a transform — taking logs turns <code>y = a·e^{bx}</code> into a straight line in ln(y)."],
+    ["Overfitting","A very high-degree polynomial can hug every point yet predict badly. Prefer the simplest curve that fits well."]
+  ],
+  example:{problem:"Bacteria double each hour from 100. Model the count after t hours.",
+    steps:["Exponential growth: N = N₀·2^t with N₀ = 100.","After 3 h: N = 100×2³ = 800.","Taking log₂ linearises it: log₂(N) = log₂(100) + t."]},
+  practice:[
+    {problem:"N = 100·2^t. Find the count after 5 hours.",
+     steps:["N = 100 × 2⁵ = 100 × 32 = 3200"]},
+    {problem:"A curve rises fast then flattens out. Which model fits best?",
+     steps:["Rapid rise then levelling → logarithmic (diminishing returns)."]},
+    {problem:"Why avoid fitting a degree-10 polynomial to 12 points?",
+     steps:["It can pass through nearly every point (overfitting).","It captures noise, not the real pattern, and predicts new points badly."]}
+  ],
+  graph:"nonlinear",
+  quiz:[
+    {q:"y = a·e^{bx} models…",options:["Constant data","Exponential growth/decay","A straight line","Categories"],answer:1},
+    {q:"A logarithmic curve typically shows…",options:["Accelerating growth","Diminishing returns","No trend","A cycle"],answer:1},
+    {q:"Fitting every point with a huge polynomial risks…",options:["Underfitting","Overfitting","Extrapolation","Rounding"],answer:1},
+    {q:"Taking logs of y = a·e^{bx} makes it…",options:["Quadratic","Linear","Cubic","Cyclic"],answer:1},
+    {q:"You should choose a curve model after first…",options:["Guessing","Plotting the data","Deleting outliers","Rounding"],answer:1}
+  ],
+  references:[["NIST – Nonlinear Least Squares","https://www.itl.nist.gov/div898/handbook/pmd/section1/pmd142.htm"]]
+},
+{
+  slug:"multilinear", title:"14. Multiple Linear Regression",
+  summary:"Predicting an outcome from several predictors at once.",
+  brief:"<b>Why:</b> Outcomes rarely depend on just one thing — house price depends on size, location, and age together. <b>When:</b> Use it to predict from several inputs at once and to isolate each one's effect while holding the others constant. Widely used in economics, medicine, and business modelling.",
+  theory:[
+    ["The model","<b>Multiple regression</b> extends the line to many predictors: <code>ŷ = b₀ + b₁x₁ + b₂x₂ + … + bₖxₖ</code>."],
+    ["Coefficients","Each bⱼ is the effect of xⱼ on y <i>holding the other predictors constant</i> — the key advantage over simple regression."],
+    ["Adjusted r²","Adding predictors always raises r², so <b>adjusted r²</b> penalises extra variables to show real improvement."],
+    ["Multicollinearity","When predictors are strongly correlated with each other, coefficients become unstable and hard to interpret."],
+    ["Dummy variables","Categorical predictors enter as 0/1 <b>dummy variables</b>, letting the model use non-numeric factors."]
+  ],
+  example:{problem:"ŷ = 20 + 5·(hours) + 3·(sleep). Predict for 4 hours studied, 8 hours sleep.",
+    steps:["ŷ = 20 + 5×4 + 3×8","= 20 + 20 + 24","ŷ = 64. Each study hour adds 5 points, holding sleep fixed."]},
+  practice:[
+    {problem:"ŷ = 10 + 2x₁ + 4x₂. Predict for x₁ = 3, x₂ = 5.",
+     steps:["ŷ = 10 + 2×3 + 4×5 = 10 + 6 + 20 = 36"]},
+    {problem:"Two predictors are correlated at r = 0.95. What problem is likely?",
+     steps:["Strongly correlated predictors → multicollinearity.","Coefficients become unstable and hard to interpret."]},
+    {problem:"How do you include 'city (A/B/C)' in a regression?",
+     steps:["Convert it to 0/1 dummy variables.","E.g. is_B and is_C columns, with A as the baseline."]}
+  ],
+  graph:"multilinear",
+  quiz:[
+    {q:"A coefficient bⱼ shows xⱼ's effect while…",options:["Ignoring others","Holding other predictors constant","Doubling y","Removing b₀"],answer:1},
+    {q:"Highly correlated predictors cause…",options:["Higher power","Multicollinearity","Lower r²","Outliers"],answer:1},
+    {q:"Categorical predictors enter the model as…",options:["Slopes","Dummy variables","Residuals","Means"],answer:1},
+    {q:"Which metric penalises adding useless predictors?",options:["r","Adjusted r²","Slope","Mean"],answer:1},
+    {q:"Adding any predictor to a model makes plain r²…",options:["Decrease","Stay/rise","Go negative","Become zero"],answer:1}
+  ],
+  references:[["Penn State STAT 501 – Multiple Regression","https://online.stat.psu.edu/stat501/"]]
+},
+{
+  slug:"timeseries", title:"15. Time Series",
+  summary:"Analysing data ordered in time — trend, seasonality, and forecasting.",
+  brief:"<b>Why:</b> When data arrive in time order, past values help predict future ones — ordinary methods that assume independence don't apply. <b>When:</b> Use time-series tools to spot trends and seasonal cycles and to forecast — sales next quarter, electricity demand tomorrow, website traffic next week.",
+  theory:[
+    ["What it is","A <b>time series</b> is data recorded in time order (daily sales, monthly rainfall). Order matters, and points are usually not independent."],
+    ["Components","<b>Trend</b> (long-term direction), <b>seasonality</b> (regular cycles), and <b>noise</b> (random variation). Some data also show longer business cycles."],
+    ["Smoothing","<b>Moving averages</b> and <b>exponential smoothing</b> reduce noise to reveal the underlying trend."],
+    ["Stationarity","Many forecasting methods need a <b>stationary</b> series (stable mean and variance). Differencing removes trend to achieve it."],
+    ["Forecasting","Models like <b>ARIMA</b> and Holt-Winters project trend and seasonality forward. Always validate against held-out data."]
+  ],
+  example:{problem:"Sales: 10, 12, 14. Forecast the next value with a simple linear trend.",
+    steps:["Each step rises by +2 (constant trend).","Next value ≈ 14 + 2 = 16.","A moving average would instead smooth around the recent mean."]},
+  practice:[
+    {problem:"Compute the 3-point moving average of 4, 6, 8, 10 at the middle points.",
+     steps:["(4+6+8)/3 = 6","(6+8+10)/3 = 8","Smoothed series: 6, 8."]},
+    {problem:"Ice-cream sales peak every summer. Which component is this?",
+     steps:["A regular yearly cycle → seasonality."]},
+    {problem:"Why can't you use a normal t-test directly on daily stock prices?",
+     steps:["The values are time-ordered and dependent (today relates to yesterday).","That breaks the independence assumption — use time-series methods."]}
+  ],
+  graph:"timeseries",
+  quiz:[
+    {q:"Regular yearly cycles in data are called…",options:["Trend","Seasonality","Noise","Drift"],answer:1},
+    {q:"A moving average is used to…",options:["Add noise","Smooth the series","Remove seasonality only","Create outliers"],answer:1},
+    {q:"Making a series stationary often uses…",options:["Squaring","Differencing","Rounding","Sorting"],answer:1},
+    {q:"The long-term upward or downward direction is the…",options:["Trend","Season","Noise","Outlier"],answer:0},
+    {q:"A popular forecasting model is…",options:["ANOVA","ARIMA","Chi-square","Pearson"],answer:1}
+  ],
+  references:[["Hyndman – Forecasting: Principles and Practice","https://otexts.com/fpp3/"]]
+},
+{
+  slug:"quiz", title:"16. Mega Quiz",
+  summary:"Mixed questions spanning every topic in the lab.",
+  kind:"megaquiz",
+  quiz:[
+    {q:"Which level of measurement has a true zero?",options:["Nominal","Ordinal","Interval","Ratio"],answer:3},
+    {q:"The middle value of sorted data is the…",options:["Mean","Median","Mode","Range"],answer:1},
+    {q:"An outlier by the IQR rule lies beyond Q1/Q3 by…",options:["1.0×IQR","1.5×IQR","2×IQR","0.5×IQR"],answer:1},
+    {q:"~99.7% of normal data lie within…",options:["1σ","2σ","3σ","4σ"],answer:2},
+    {q:"Use a t-test rather than z-test when…",options:["σ is known","σ is unknown","n is huge","data are categorical"],answer:1},
+    {q:"The two-tailed z critical value at α=0.05 is…",options:["1.645","1.96","2.33","2.58"],answer:1},
+    {q:"ANOVA uses which distribution?",options:["t","z","F","χ²"],answer:2},
+    {q:"Chi-square works with… data.",options:["Continuous","Categorical","Ranked","Paired"],answer:1},
+    {q:"Rejecting a true H₀ is a…",options:["Type I error","Type II error","Power","Correct call"],answer:0},
+    {q:"Power equals…",options:["α","β","1 − β","1 − α"],answer:2},
+    {q:"Pearson's r of −0.85 means…",options:["Weak +","Strong −","No relation","Strong +"],answer:1},
+    {q:"In ŷ = b₀ + b₁x, the slope is…",options:["b₀","b₁","x","ŷ"],answer:1},
+    {q:"Exponential growth is modelled by…",options:["y=a+bx","y=a·e^{bx}","y=a+b·ln x","y=a"],answer:1},
+    {q:"Correlated predictors in multiple regression cause…",options:["Higher r²","Multicollinearity","Outliers","Lower α"],answer:1},
+    {q:"Regular cycles in a time series are…",options:["Trend","Seasonality","Noise","Error"],answer:1},
+    {q:"'Number of cars' is which type of variable?",options:["Continuous","Discrete","Nominal","Ordinal"],answer:1},
+    {q:"r² of 0.36 means… of variance explained.",options:["36%","60%","6%","64%"],answer:0},
+    {q:"A paired t-test is used when…",options:["Two separate groups","Same subjects measured twice","Three groups","Categorical data"],answer:1},
+    {q:"The p-value is compared against…",options:["r","α","the mean","n"],answer:1},
+    {q:"To find WHICH groups differ after ANOVA you run a…",options:["z-test","Post-hoc test","Correlation","χ²"],answer:1}
+  ],
+  references:[]
+},
+{
+  slug:"jokes", title:"17. 100 Stats Jokes",
+  summary:"A little comic relief — statistics puns and one-liners.",
+  kind:"jokes",
+  references:[]
+},
+{
+  slug:"tree", title:"18. Tree of Life",
+  summary:"A decision map: which statistical test should I use?",
+  kind:"tree",
+  references:[["UCLA – Choosing the Correct Statistical Test","https://stats.oarc.ucla.edu/other/mult-pkg/whatstat/"]]
+}
+];
+// ==================== DEEP DIVES for topics 11–15 ====================
+// Each deepdive: {intro, table:{caption,headers,rows}, byhand:[steps], excel:[steps],
+//   python:"code", bigdata:[points], interpret:"text"}
+const DEEPDIVE = {
+"correlation": {
+  intro:"Correlation quantifies how tightly two numeric variables move together. Below is a realistic sample of 12 students: hours studied vs exam score. We'll compute Pearson's r fully, then show how the exact same idea scales to millions of rows.",
+  table:{
+    caption:"Sample data (n = 12): study hours (x) vs exam score (y)",
+    headers:["Student","Hours (x)","Score (y)"],
+    rows:[["1","2","55"],["2","3","60"],["3","4","62"],["4","5","68"],["5","6","70"],
+      ["6","7","74"],["7","8","80"],["8","9","82"],["9","10","88"],["10","11","90"],
+      ["11","12","93"],["12","13","97"]]
+  },
+  byhand:[
+    "Compute the means: x̄ = Σx/n = 90/12 = 7.5, ȳ = Σy/12 = 909/12 = 75.75.",
+    "For each row find the deviations (x−x̄) and (y−ȳ), then three running sums: Σ(x−x̄)(y−ȳ), Σ(x−x̄)², Σ(y−ȳ)².",
+    "Plug into Pearson's formula: r = Σ(x−x̄)(y−ȳ) / √[Σ(x−x̄)² · Σ(y−ȳ)²].",
+    "For this data that gives r ≈ 0.997 — an almost perfect positive linear relationship.",
+    "Square it: r² ≈ 0.994 → about 99% of the variation in scores is explained by study hours."
+  ],
+  excel:[
+    "Put x in column A (A2:A13) and y in column B (B2:B13).",
+    "In any cell type =CORREL(A2:A13, B2:B13) to get Pearson's r directly.",
+    "For r², type =RSQ(B2:B13, A2:A13).",
+    "To see it visually: select A1:B13 → Insert → Scatter chart → right-click a point → Add Trendline → tick 'Display R-squared'.",
+    "For a full matrix of many columns: Data → Data Analysis → Correlation."
+  ],
+  python:`import pandas as pd
+from scipy import stats
+
+df = pd.DataFrame({
+    "hours": [2,3,4,5,6,7,8,9,10,11,12,13],
+    "score": [55,60,62,68,70,74,80,82,88,90,93,97],
+})
+
+# Pearson r and its p-value
+r, p = stats.pearsonr(df["hours"], df["score"])
+print(f"r = {r:.3f},  r^2 = {r**2:.3f},  p = {p:.2e}")
+
+# Whole-dataframe correlation matrix (scales to many columns)
+print(df.corr())`,
+  bigdata:[
+    "The formula is a set of running sums (Σx, Σy, Σxy, Σx², Σy²), so it streams: you never need all rows in memory at once.",
+    "In pandas, df.corr() computes every pairwise correlation in one call; for data too large for memory use Dask (dask.dataframe) or Spark (df.stat.corr('a','b')).",
+    "With millions of rows, even tiny correlations become 'statistically significant' — judge the effect size (|r|), not just the p-value.",
+    "Watch for confounders and non-linearity: a near-zero Pearson r can still hide a strong curved relationship, so always plot a sample."
+  ],
+  interpret:"r ≈ 0.997 means study hours and score rise together almost perfectly in a straight line. But correlation is not causation — a lurking factor (e.g. motivation) could drive both.",
+  aiprompt:"You are a data analyst. I have a dataset with two numeric columns, \"hours\" (study hours) and \"score\" (exam score), for 12 students. Please:\n1. Compute the Pearson correlation coefficient r and r², and explain what they mean in plain language.\n2. State whether the relationship is weak, moderate, or strong, and its direction.\n3. Check whether the relationship looks linear, and warn me about any outliers or confounders.\n4. Remind me why correlation does not prove causation here.\nShow the formula, the result, and a one-paragraph interpretation a non-statistician can understand.",
+  stata:`* Load or input the data
+input hours score
+2 55
+3 60
+4 62
+5 68
+6 70
+7 74
+8 80
+9 82
+10 88
+11 90
+12 93
+13 97
+end
+
+* Pearson correlation
+correlate hours score
+pwcorr hours score, sig      // adds significance level
+scatter score hours || lfit score hours   // visualise`,
+  eviews:`' Create a workfile then bring in the series HOURS and SCORE
+' Pearson correlation coefficient:
+scalar r = @cor(score, hours)
+show r
+
+' Full correlation matrix
+group g hours score
+g.cor
+
+' Scatter with fitted line
+scat(r) hours score`
+},
+
+"regression": {
+  intro:"Regression turns a correlation into a predictive equation ŷ = b₀ + b₁x. Using the same 12-student data, we fit the least-squares line by hand, in Excel, and in Python, then scale to large datasets.",
+  table:{
+    caption:"Same sample (n = 12): predict score (y) from hours (x)",
+    headers:["Hours (x)","Score (y)"],
+    rows:[["2","55"],["3","60"],["4","62"],["5","68"],["6","70"],["7","74"],
+      ["8","80"],["9","82"],["10","88"],["11","90"],["12","93"],["13","97"]]
+  },
+  byhand:[
+    "Means: x̄ = 7.5, ȳ = 75.75.",
+    "Slope b₁ = Σ(x−x̄)(y−ȳ) / Σ(x−x̄)². For this data b₁ ≈ 3.53.",
+    "Intercept b₀ = ȳ − b₁·x̄ = 75.75 − 3.53×7.5 ≈ 49.3.",
+    "Equation: ŷ = 49.3 + 3.53x — each extra study hour adds ~3.5 points.",
+    "Predict for x = 15: ŷ = 49.3 + 3.53×15 ≈ 102.3 (but note this is extrapolation beyond the data range)."
+  ],
+  excel:[
+    "x in A2:A13, y in B2:B13.",
+    "Slope: =SLOPE(B2:B13, A2:A13). Intercept: =INTERCEPT(B2:B13, A2:A13).",
+    "Predict a new x directly with =FORECAST.LINEAR(15, B2:B13, A2:A13).",
+    "Fit quality: =RSQ(B2:B13, A2:A13).",
+    "Full report: Data → Data Analysis → Regression (gives coefficients, r², p-values, residuals)."
+  ],
+  python:`import pandas as pd
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+df = pd.DataFrame({
+    "hours": [2,3,4,5,6,7,8,9,10,11,12,13],
+    "score": [55,60,62,68,70,74,80,82,88,90,93,97],
+})
+X = df[["hours"]]          # 2-D for sklearn
+y = df["score"]
+
+model = LinearRegression().fit(X, y)
+print("intercept b0 =", round(model.intercept_, 2))
+print("slope     b1 =", round(model.coef_[0], 2))
+print("R^2          =", round(model.score(X, y), 3))
+print("predict x=15 =", round(model.predict([[15]])[0], 1))`,
+  bigdata:[
+    "Least squares has a closed-form solution from summary sums, so it fits huge data in one pass.",
+    "For data that fits in memory, sklearn's LinearRegression is fine up to millions of rows; beyond that use SGDRegressor (learns row-by-row) or Spark MLlib's LinearRegression.",
+    "Always split into train/test sets and check r² on the test set — a line that fits training data can still predict poorly.",
+    "Never extrapolate far past the observed x-range; the linear pattern may break down there."
+  ],
+  interpret:"The line ŷ = 49.3 + 3.53x lets you predict a score from any study-hour value inside the data range. The slope (3.53) is the practical takeaway: one more hour ≈ 3.5 more points.",
+  aiprompt:"You are a data analyst. I have \"hours\" (x) and \"score\" (y) for 12 students. Please:\n1. Fit a simple linear regression ŷ = b₀ + b₁x and give me the intercept and slope.\n2. Explain the slope and intercept in plain words (what one extra study hour does).\n3. Report r² and say how well the line fits.\n4. Predict the score for a student who studies 15 hours, and warn me if that is extrapolation.\n5. Suggest one way to check the model's assumptions (e.g. a residual plot).\nShow the equation, the numbers, and a short plain-language summary.",
+  stata:`input hours score
+2 55
+3 60
+4 62
+5 68
+6 70
+7 74
+8 80
+9 82
+10 88
+11 90
+12 93
+13 97
+end
+
+* Simple linear regression: score = b0 + b1*hours
+regress score hours
+
+* Predict for a new value (15 hours)
+margins, at(hours = 15)
+
+* Diagnostics
+predict resid, residuals
+rvfplot            // residual vs fitted plot`,
+  eviews:`' Series SCORE (dependent) and HOURS (regressor)
+' Ordinary least squares regression:
+equation eq1.ls score c hours
+' c = intercept, hours = slope
+
+' Show results and forecast
+eq1.results
+' Predict: extend the sample, set HOURS=15 in the new row, then
+smpl @all
+eq1.forecast score_f`
+},
+
+"nonlinear": {
+  intro:"When a scatter plot bends, a straight line fits badly. Here is monthly active users of an app growing exponentially. We fit a curve by linearising (log transform), in Excel, and in Python with curve fitting.",
+  table:{
+    caption:"App users by month (thousands) — accelerating growth",
+    headers:["Month (t)","Users (y)"],
+    rows:[["0","10"],["1","15"],["2","23"],["3","34"],["4","51"],["5","76"],
+      ["6","114"],["7","171"],["8","257"],["9","385"]]
+  },
+  byhand:[
+    "The counts roughly multiply by ~1.5 each month → suspect exponential y = a·b^t.",
+    "Linearise by taking logs: log(y) = log(a) + t·log(b). Now it's a straight line in t vs log(y).",
+    "Run a normal linear regression on t against log(y) to get the intercept log(a) and slope log(b).",
+    "Back-transform: a = 10^intercept, b = 10^slope. Here a ≈ 10 and b ≈ 1.5.",
+    "Model: y ≈ 10 × 1.5^t. Predict month 12: 10 × 1.5¹² ≈ 1298 thousand users."
+  ],
+  excel:[
+    "t in A2:A11, y in B2:B11. Add column C: =LOG(B2) copied down (this linearises y).",
+    "Slope of the log fit: =SLOPE(C2:C11, A2:A11); intercept: =INTERCEPT(C2:C11, A2:A11).",
+    "Recover the curve: a = =10^intercept, b = =10^slope.",
+    "Shortcut for growth rate: =GROWTH(B2:B11, A2:A11, newX) predicts on an exponential trend directly.",
+    "Chart: scatter the data → Add Trendline → choose Exponential (or Polynomial / Logarithmic) → Display Equation & R²."
+  ],
+  python:`import numpy as np
+from scipy.optimize import curve_fit
+
+t = np.array([0,1,2,3,4,5,6,7,8,9])
+y = np.array([10,15,23,34,51,76,114,171,257,385])
+
+def exp_model(t, a, b):
+    return a * np.power(b, t)
+
+params, _ = curve_fit(exp_model, t, y, p0=[10, 1.5])
+a, b = params
+print(f"y = {a:.1f} * {b:.3f}^t")
+print("predict t=12:", round(exp_model(12, a, b)))
+
+# Polynomial alternative (degree 2):
+coeffs = np.polyfit(t, y, deg=2)
+print("quadratic coeffs:", np.round(coeffs, 2))`,
+  bigdata:[
+    "curve_fit and polyfit work on arrays that fit in memory; for very large series, fit on a representative sample then validate on the rest.",
+    "Prefer the simplest curve that fits — a high-degree polynomial can hug every point (overfitting) yet forecast badly.",
+    "Log/Box-Cox transforms turn many non-linear problems into ordinary linear regression, which scales trivially (Spark, Dask).",
+    "For genuinely complex shapes at scale, gradient-boosted trees (XGBoost, LightGBM) capture non-linearity without you specifying the formula."
+  ],
+  interpret:"The fitted y ≈ 10 × 1.5^t says users grow ~50% per month. Because growth compounds, forecasts explode quickly — so re-fit often and treat far-out predictions with caution.",
+  aiprompt:"You are a data analyst. I have monthly app users: month t = 0..9 and users y = [10,15,23,34,51,76,114,171,257,385]. Please:\n1. Tell me whether the growth looks linear, exponential, logarithmic, or polynomial, and why.\n2. Fit the best simple curve (e.g. y = a·b^t), giving me a and b.\n3. Explain the growth rate in plain language (e.g. \"~X% per month\").\n4. Forecast users at month 12, and warn me about the risks of extrapolating an exponential curve.\n5. Mention overfitting and why the simplest good-fitting curve is preferred.\nShow the model, the numbers, and a short interpretation.",
+  stata:`input t users
+0 10
+1 15
+2 23
+3 34
+4 51
+5 76
+6 114
+7 171
+8 257
+9 385
+end
+
+* Linearise: log(users) is linear in t for exponential growth
+gen lnusers = ln(users)
+regress lnusers t
+* slope = ln(b), intercept = ln(a); recover:
+display "a = " exp(_b[_cons]) "   b = " exp(_b[t])
+
+* Or fit the curve directly with nonlinear least squares
+nl (users = {a} * {b}^t), initial(a 10 b 1.5)`,
+  eviews:`' Series USERS and T
+' Method 1 - linearise:
+series lnusers = log(users)
+equation eq1.ls lnusers c t
+' a = exp(c),  b = exp(coefficient on t)
+
+' Method 2 - nonlinear least squares directly:
+equation eq2.ls users = c(1)*c(2)^t
+' set starting values first: param c(1) 10 c(2) 1.5`
+},
+
+"multilinear": {
+  intro:"Multiple regression predicts an outcome from several inputs at once and isolates each one's effect. Here we predict house price from size, age, and number of bedrooms.",
+  table:{
+    caption:"Houses (n = 10): predict price ($1000s) from three features",
+    headers:["Size (m²)","Age (yr)","Beds","Price ($k)"],
+    rows:[["50","20","1","120"],["70","15","2","160"],["90","10","2","210"],
+      ["110","8","3","260"],["130","5","3","310"],["150","3","4","360"],
+      ["80","25","2","150"],["100","12","3","230"],["120","6","3","290"],["140","2","4","350"]]
+  },
+  byhand:[
+    "The model is ŷ = b₀ + b₁·size + b₂·age + b₃·beds.",
+    "By hand this needs matrix algebra: b = (XᵀX)⁻¹Xᵀy, where X holds a column of 1s plus the three feature columns.",
+    "That inversion is impractical on paper for 3+ predictors — this is exactly why software is used.",
+    "Interpretation of a coefficient: b₁ is the price change per extra m², holding age and bedrooms constant.",
+    "Typical fitted result here: price rises strongly with size, falls with age, and bedrooms add a smaller extra effect."
+  ],
+  excel:[
+    "Lay out features in adjacent columns (e.g. A=size, B=age, C=beds) and price in D.",
+    "Enable the Analysis ToolPak: File → Options → Add-ins → Analysis ToolPak → Go → tick it.",
+    "Data → Data Analysis → Regression. Input Y Range = D, Input X Range = A:C (all three at once). Tick Labels.",
+    "Read the output: each coefficient, its p-value (is it significant?), and the Adjusted R² for overall fit.",
+    "Predict with =TREND(D2:D11, A2:C11, newXrange) for a new house's feature values."
+  ],
+  python:`import pandas as pd
+from sklearn.linear_model import LinearRegression
+
+df = pd.DataFrame({
+    "size": [50,70,90,110,130,150,80,100,120,140],
+    "age":  [20,15,10,8,5,3,25,12,6,2],
+    "beds": [1,2,2,3,3,4,2,3,3,4],
+    "price":[120,160,210,260,310,360,150,230,290,350],
+})
+X = df[["size","age","beds"]]
+y = df["price"]
+
+model = LinearRegression().fit(X, y)
+for name, coef in zip(X.columns, model.coef_):
+    print(f"{name:5s} coefficient = {coef:8.2f}")
+print("intercept =", round(model.intercept_, 2))
+print("R^2       =", round(model.score(X, y), 3))
+
+# Predict a new 100 m2, 5-year-old, 3-bed house:
+print("predicted price:", round(model.predict([[100,5,3]])[0], 1))`,
+  bigdata:[
+    "Solving (XᵀX)⁻¹Xᵀy is one matrix operation — fast even for millions of rows and dozens of features.",
+    "Check multicollinearity (VIF): strongly correlated predictors make coefficients unstable; drop or combine them.",
+    "For huge/streaming data use SGDRegressor or Spark MLlib; for many weak predictors, add regularisation (Ridge/Lasso) to prevent overfitting.",
+    "Encode categorical features as dummy (0/1) variables with pd.get_dummies before fitting."
+  ],
+  interpret:"Each coefficient is the effect of one feature while the others are held fixed — e.g. 'each extra m² adds $X to price, regardless of age'. Use Adjusted R² (not plain R²) to judge whether extra predictors truly help.",
+  aiprompt:"You are a data analyst. I have 10 houses with columns size (m²), age (years), beds, and price ($k). Please:\n1. Fit a multiple linear regression predicting price from size, age, and beds.\n2. Give each coefficient and explain it in plain words, emphasising 'holding the other features constant'.\n3. Report Adjusted R² and say how well the model fits.\n4. Tell me which predictors are statistically significant.\n5. Check for multicollinearity between the predictors and flag any problem.\n6. Predict the price of a 100 m², 5-year-old, 3-bedroom house.\nShow the equation, a table of coefficients, and a plain-language summary.",
+  stata:`input size age beds price
+50 20 1 120
+70 15 2 160
+90 10 2 210
+110 8 3 260
+130 5 3 310
+150 3 4 360
+80 25 2 150
+100 12 3 230
+120 6 3 290
+140 2 4 350
+end
+
+* Multiple regression: price on size, age, beds
+regress price size age beds
+
+* Check multicollinearity
+estat vif
+
+* Predict a new 100 m2, 5-yr, 3-bed house
+margins, at(size=100 age=5 beds=3)`,
+  eviews:`' Series PRICE, SIZE, AGE, BEDS
+' Multiple OLS - list all regressors after the dependent var:
+equation eq1.ls price c size age beds
+eq1.results
+
+' Adjusted R-squared and coefficient p-values appear in the output.
+' Forecast: add a row with size=100, age=5, beds=3, then
+eq1.forecast price_f`
+},
+
+"timeseries": {
+  intro:"Time-series data is ordered in time, so past values inform the future. Here are 12 months of sales showing an upward trend plus seasonality. We decompose it, smooth it, and forecast.",
+  table:{
+    caption:"Monthly sales ($1000s) — trend + seasonal wave",
+    headers:["Month","Sales"],
+    rows:[["Jan","20"],["Feb","22"],["Mar","28"],["Apr","25"],["May","30"],["Jun","34"],
+      ["Jul","31"],["Aug","36"],["Sep","40"],["Oct","37"],["Nov","43"],["Dec","48"]]
+  },
+  byhand:[
+    "Spot the components: a general upward TREND, a repeating up-down SEASONAL wobble, and small random NOISE.",
+    "Smooth with a 3-month moving average to reveal the trend: e.g. (20+22+28)/3 = 23.3, (22+28+25)/3 = 25, and so on.",
+    "Estimate seasonality: subtract the smoothed trend from actual sales to get each month's seasonal offset, then average offsets by season.",
+    "Forecast = projected trend + seasonal offset. If the trend adds ~+2/month, next month ≈ last trend value + 2 + its seasonal offset.",
+    "Always keep the last few months as a test set and compare your forecast to what actually happened."
+  ],
+  excel:[
+    "Put months in A, sales in B.",
+    "3-month moving average in C3: =AVERAGE(B2:B4), copied down — this is the smoothed trend.",
+    "Built-in forecasting: select the range → Data → Forecast Sheet (handles trend + seasonality automatically).",
+    "Or use =FORECAST.ETS(futureDate, B:B, A:B) for exponential-smoothing forecasts with seasonality.",
+    "Chart the data as a Line chart → Add Trendline to visualise the direction."
+  ],
+  python:`import pandas as pd
+from statsmodels.tsa.holtwinters import ExponentialSmoothing
+
+sales = [20,22,28,25,30,34,31,36,40,37,43,48]
+idx = pd.date_range("2024-01-01", periods=12, freq="MS")
+ts = pd.Series(sales, index=idx)
+
+# Smooth to see the trend
+print("3-month moving average:\\n", ts.rolling(3).mean())
+
+# Holt-Winters: additive trend + seasonality, forecast 3 months
+model = ExponentialSmoothing(
+    ts, trend="add", seasonal="add", seasonal_periods=4
+).fit()
+print("forecast:\\n", model.forecast(3).round(1))`,
+  bigdata:[
+    "For long/high-frequency series, resample first (ts.resample('D').sum()) to the granularity you actually need.",
+    "Classic models: ARIMA (trend), SARIMA (trend + season), Holt-Winters (exponential smoothing). At scale, Facebook Prophet handles many series with holidays and missing data.",
+    "For thousands of series (e.g. sales per store per product), fit per-group with groupby, or use libraries built for many series (Prophet, GluonTS, Nixtla).",
+    "Validate with time-based splits (train on the past, test on the future) — never shuffle time-series rows randomly."
+  ],
+  interpret:"Decomposing into trend + seasonality + noise tells you both the direction (sales rising ~+2/month) and the repeating pattern (seasonal peaks), which together drive the forecast. Judge a forecast by its error on held-out future months.",
+  aiprompt:"You are a data analyst. I have 12 months of sales ($k): [20,22,28,25,30,34,31,36,40,37,43,48], Jan–Dec. Please:\n1. Identify the trend, any seasonality, and the noise in this series.\n2. Compute a 3-month moving average to show the smoothed trend.\n3. Recommend a suitable forecasting method (e.g. Holt-Winters / ARIMA / Prophet) and say why.\n4. Forecast the next 3 months.\n5. Explain how to validate the forecast using a time-based train/test split (not random shuffling).\nShow the smoothed values, the forecast, and a short plain-language interpretation.",
+  stata:`input sales
+20
+22
+28
+25
+30
+34
+31
+36
+40
+37
+43
+48
+end
+gen month = _n
+tsset month              // declare it a time series
+
+* 3-month moving average (smoothing)
+tssmooth ma sales_ma = sales, window(1 1 1)
+
+* Forecast with exponential smoothing (Holt-Winters)
+tssmooth shwinters sales_hw = sales, forecast(3)
+
+* Or fit an ARIMA model
+arima sales, arima(1,1,1)
+predict sales_f, y dynamic(13)`,
+  eviews:`' Create a dated (monthly) workfile, series SALES
+' Moving-average smoothing:
+series sales_ma = @movav(sales, 3)
+
+' Exponential smoothing with trend + seasonality (Holt-Winters):
+smpl @first @last
+sales.smooth(hw) sales_sm
+
+' Or estimate ARIMA and forecast 3 periods ahead:
+equation eq1.ls sales c ar(1) ma(1)
+smpl @last+1 @last+3
+eq1.forecast sales_f`
+}
+};
+// ============ DEEP DIVES part 2 — topics 1–10 ============
+const DEEPDIVE2 = {
+
+"variables":{
+  intro:"Before any analysis you classify each column: is it numeric or categorical, and at what measurement level? Here is a small survey dataset. We'll identify each variable's type by hand, in Excel, in Python, and scale the idea to big data.",
+  table:{
+    caption:"Survey sample (n = 8): mixed variable types",
+    headers:["ID","Age","Gender","Satisfaction (1–5)","City"],
+    rows:[["1","23","F","4","Phnom Penh"],["2","35","M","2","Siem Reap"],["3","29","F","5","Phnom Penh"],
+      ["4","41","M","3","Battambang"],["5","52","F","4","Siem Reap"],["6","19","M","1","Phnom Penh"],
+      ["7","33","F","5","Battambang"],["8","46","M","3","Siem Reap"]]
+  },
+  byhand:[
+    "Age → quantitative, continuous, ratio (a true zero exists; 40 is twice 20).",
+    "Gender → qualitative, nominal (labels with no order).",
+    "Satisfaction 1–5 → qualitative, ordinal (ordered ranks, unequal gaps).",
+    "City → qualitative, nominal (categories, no order).",
+    "Rule of thumb: if averaging the values is meaningful it's quantitative; if only counting per category makes sense it's categorical."
+  ],
+  excel:[
+    "List each column header and beside it write its type.",
+    "Count categories with =COUNTIF(range, \"F\") for gender, or a PivotTable for a full frequency table.",
+    "For a quantitative column, =AVERAGE / =MEDIAN work; if they error or mislead, the variable is categorical.",
+    "Use Data → Data Validation → List to enforce categorical entries (e.g. only M/F).",
+    "A PivotTable (Insert → PivotTable) instantly shows counts per category — the correct summary for nominal data."
+  ],
+  python:`import pandas as pd
+
+df = pd.DataFrame({
+    "age":[23,35,29,41,52,19,33,46],
+    "gender":["F","M","F","M","F","M","F","M"],
+    "satisfaction":[4,2,5,3,4,1,5,3],
+    "city":["Phnom Penh","Siem Reap","Phnom Penh","Battambang",
+            "Siem Reap","Phnom Penh","Battambang","Siem Reap"],
+})
+
+print(df.dtypes)          # int64 = numeric, object = categorical
+print(df.describe())      # summary for numeric columns
+print(df["city"].value_counts())   # counts for a categorical column
+
+# Mark ordinal explicitly:
+df["satisfaction"] = pd.Categorical(df["satisfaction"],
+        categories=[1,2,3,4,5], ordered=True)`,
+  bigdata:[
+    "df.dtypes and df.nunique() quickly profile thousands of columns to auto-flag likely categoricals (few distinct values) vs numerics.",
+    "Store low-cardinality text as the 'category' dtype (pandas) or dictionary-encode it (Spark/Parquet) to save huge memory at scale.",
+    "For machine learning, categorical columns must be encoded (one-hot or target encoding) before modelling — numerics can be used directly.",
+    "Automated profiling tools (ydata-profiling, Spark's summary) classify variable types and flag data-quality issues across billions of rows."
+  ],
+  interpret:"Correctly typing variables is the gatekeeper: it decides whether you compute a mean or a frequency table, which chart to draw, and which test is valid later. Mis-typing (e.g. averaging satisfaction) produces numbers that look fine but mean nothing.",
+  aiprompt:"You are a data analyst. I have a dataset with columns: age (number), gender (F/M), satisfaction (1–5 rating), and city (name). For each column please:\n1. State whether it is quantitative or qualitative.\n2. Give its level of measurement (nominal, ordinal, interval, or ratio) and justify it.\n3. Recommend the correct summary (mean/median vs frequency table) and one suitable chart.\n4. Flag any column that is often mis-analysed and explain the risk.\nReturn a small table: column | type | level | correct summary | chart.",
+  stata:`* Inspect variable types and summarise correctly
+describe                 // shows storage type of each variable
+codebook age gender satisfaction city
+
+* Numeric summary vs categorical frequencies
+summarize age            // mean/SD for quantitative
+tabulate gender          // frequency table for nominal
+tabulate satisfaction    // ordinal: show the distribution
+
+* Encode a string as a labelled numeric if needed
+encode city, gen(city_id)`,
+  eviews:`' Check the nature of each series
+' Numeric variable - descriptive stats:
+age.stats
+
+' Categorical variable - frequency table:
+gender.freq
+city.freq
+satisfaction.freq        ' ordinal: read the distribution, not the mean
+
+' To use a category in models, create dummies:
+series d_female = (gender = "F")`
+},
+
+"descriptive":{
+  intro:"Descriptive statistics condense a column of numbers into centre and spread. Here are 15 monthly salaries ($). We compute the mean, median, SD, and quartiles four ways, then scale to millions of rows.",
+  table:{
+    caption:"Monthly salaries ($) — n = 15",
+    headers:["#","Salary","#","Salary","#","Salary"],
+    rows:[["1","420","6","510","11","640"],["2","450","7","530","12","680"],
+      ["3","470","8","560","13","720"],["4","480","9","580","14","900"],
+      ["5","500","10","610","15","1500"]]
+  },
+  byhand:[
+    "Sum all 15 salaries = 9,570 → Mean = 9,570/15 = 638.",
+    "Sort and take the 8th value (middle of 15) → Median = 560.",
+    "The mean (638) exceeds the median (560): the $1,500 salary right-skews the data.",
+    "Variance: average the squared deviations from 638 (÷ n−1 = 14); SD = √variance ≈ 268.",
+    "Quartiles: Q1 ≈ 480 (4th value), Q3 ≈ 680 (12th value), so IQR ≈ 200 — the middle 50% spans $200."
+  ],
+  excel:[
+    "Salaries in A2:A16.",
+    "=AVERAGE(A2:A16), =MEDIAN(A2:A16), =MODE.SNGL(A2:A16).",
+    "Spread: =STDEV.S(A2:A16) (sample), =VAR.S(A2:A16), =MAX-MIN for range.",
+    "Quartiles: =QUARTILE.INC(A2:A16,1) and (…,3); IQR = Q3−Q1.",
+    "One-click report: Data → Data Analysis → Descriptive Statistics (tick Summary statistics)."
+  ],
+  python:`import pandas as pd
+
+s = pd.Series([420,450,470,480,500,510,530,560,580,610,640,680,720,900,1500])
+
+print("mean   :", s.mean())
+print("median :", s.median())
+print("SD     :", round(s.std(), 1))     # sample SD (ddof=1)
+print("IQR    :", s.quantile(.75) - s.quantile(.25))
+print(s.describe())                       # full summary at once
+
+# Skew check: mean > median suggests right skew
+print("skew   :", round(s.skew(), 2))`,
+  bigdata:[
+    "Mean, variance, and counts are computed from running sums, so they stream over data far larger than memory (one pass, no sorting).",
+    "The median and quartiles need order statistics — expensive at scale; use approximate quantiles (t-digest, Spark's approxQuantile) instead of exact sorting.",
+    "In Spark: df.describe() or df.summary() returns count/mean/stddev/min/quartiles across a cluster.",
+    "For skewed money data, report the median and IQR alongside the mean, and consider a log transform before modelling."
+  ],
+  interpret:"Mean 638 vs median 560 tells the story instantly: one high earner pulls the average up, so the median is the fairer 'typical' salary. The SD (~268) and IQR (~200) quantify how spread out pay is.",
+  aiprompt:"You are a data analyst. I have 15 monthly salaries: [420,450,470,480,500,510,530,560,580,610,640,680,720,900,1500]. Please:\n1. Compute mean, median, mode, sample standard deviation, range, and IQR.\n2. Tell me whether the data are skewed and in which direction, using the mean vs median.\n3. Say which measure of centre and which measure of spread best represent this data and why.\n4. Suggest one chart (e.g. boxplot or histogram) to visualise it.\nShow the numbers in a small table plus a one-paragraph plain-language summary.",
+  stata:`input salary
+420
+450
+470
+480
+500
+510
+530
+560
+580
+610
+640
+680
+720
+900
+1500
+end
+
+summarize salary, detail   // mean, SD, percentiles, skewness, kurtosis
+* Quartiles and IQR appear in the detailed output
+centile salary, centile(25 50 75)`,
+  eviews:`' Series SALARY
+salary.stats               ' mean, median, SD, skewness, kurtosis, min, max
+
+' Quartiles:
+salary.quantile(0.25)
+salary.quantile(0.75)
+
+' Visualise:
+salary.hist                ' histogram
+salary.boxplot             ' boxplot shows median, IQR, outliers`
+},
+
+"outliers":{
+  intro:"Outliers are values far from the rest. Using response times (ms) from a web server, we detect outliers with the IQR fence and the z-score, by hand and in software, then scale the idea to production monitoring.",
+  table:{
+    caption:"Server response times (ms) — n = 12",
+    headers:["Request","Time (ms)","Request","Time (ms)"],
+    rows:[["1","95","7","120"],["2","102","8","118"],["3","98","9","110"],
+      ["4","105","10","760"],["5","99","11","108"],["6","112","12","101"]]
+  },
+  byhand:[
+    "Sort the 12 values and find quartiles: Q1 ≈ 99, Q3 ≈ 118 → IQR = 19.",
+    "Upper fence = Q3 + 1.5×IQR = 118 + 28.5 = 146.5.",
+    "The value 760 ms far exceeds 146.5 → flagged as an outlier (a slow request worth investigating).",
+    "Cross-check with z: mean ≈ 152, SD ≈ 188 → z for 760 = (760−152)/188 ≈ 3.2 (>3), also flagged.",
+    "Note how the single 760 inflates the mean (152) far above the typical ~105 — a reason to use the robust IQR method."
+  ],
+  excel:[
+    "Times in A2:A13.",
+    "Q1 = =QUARTILE.INC(A2:A13,1); Q3 = =QUARTILE.INC(A2:A13,3); IQR = Q3−Q1.",
+    "Upper fence = Q3 + 1.5*IQR; Lower fence = Q1 − 1.5*IQR.",
+    "Flag each row: =IF(OR(A2>upper, A2<lower), \"outlier\", \"ok\").",
+    "A boxplot (Insert → Statistic Chart → Box & Whisker) shows outliers as separate dots."
+  ],
+  python:`import numpy as np, pandas as pd
+
+t = pd.Series([95,102,98,105,99,112,120,118,110,760,108,101])
+
+Q1, Q3 = t.quantile(.25), t.quantile(.75)
+IQR = Q3 - Q1
+low, high = Q1 - 1.5*IQR, Q3 + 1.5*IQR
+print("IQR outliers:", t[(t < low) | (t > high)].tolist())
+
+# Robust z-score (median & MAD) resists masking
+med = t.median()
+mad = (t - med).abs().median()
+robust_z = 0.6745 * (t - med) / mad
+print("robust-z outliers:", t[robust_z.abs() > 3.5].tolist())`,
+  bigdata:[
+    "IQR fences and robust z-scores compute from quantiles/medians, which have streaming approximations (t-digest) for billions of rows.",
+    "In production, outlier detection becomes anomaly detection: rolling IQR/z on time windows, or models like Isolation Forest / DBSCAN for multivariate data.",
+    "Beware masking at scale — a cluster of anomalies can hide each other; robust (median/MAD) methods and model-based detectors handle this better than mean±3SD.",
+    "Always route flagged points to review, not automatic deletion — many 'outliers' are the events you most want to catch (fraud, outages)."
+  ],
+  interpret:"Both methods flag the 760 ms request. The IQR rule is preferred here because the lone outlier has already inflated the mean and SD, which would otherwise mask it. In practice, that flagged request is a lead to investigate, not noise to delete.",
+  aiprompt:"You are a data analyst. I have server response times (ms): [95,102,98,105,99,112,120,118,110,760,108,101]. Please:\n1. Find outliers using the 1.5×IQR fence rule, showing Q1, Q3, IQR, and the fences.\n2. Cross-check with a z-score and a robust (median/MAD) z-score, and explain any difference.\n3. Explain why the mean is a poor summary here.\n4. Recommend whether to remove, keep, or investigate the outlier and why.\nShow the fences, the flagged value(s), and a short plain-language recommendation.",
+  stata:`input ms
+95
+102
+98
+105
+99
+112
+120
+118
+110
+760
+108
+101
+end
+
+* Quartiles and fences
+summarize ms, detail
+* IQR method: values beyond Q1-1.5*IQR or Q3+1.5*IQR are outliers
+* Visual check:
+graph box ms             // outliers plotted as separate points`,
+  eviews:`' Series MS
+ms.stats                 ' inspect mean vs median (gap signals outliers)
+ms.boxplot               ' boxplot marks outliers beyond the whiskers
+
+' Manual IQR fence:
+scalar q1 = @quantile(ms, 0.25)
+scalar q3 = @quantile(ms, 0.75)
+scalar up = q3 + 1.5*(q3-q1)
+show up`
+},
+
+"normal":{
+  intro:"The normal distribution lets you turn raw values into probabilities via z-scores. Using exam scores (μ=70, σ=10), we compute z-scores and tail probabilities by hand, with tables, and in software — then note how this scales to large datasets.",
+  table:{
+    caption:"Exam scores — sample (population μ=70, σ=10)",
+    headers:["Student","Score","z = (x−70)/10"],
+    rows:[["A","55","−1.5"],["B","70","0.0"],["C","82","1.2"],["D","90","2.0"],
+      ["E","64","−0.6"],["F","78","0.8"],["G","95","2.5"],["H","50","−2.0"]]
+  },
+  byhand:[
+    "Standardise: z = (x − μ)/σ. For score 90: z = (90−70)/10 = 2.0.",
+    "Look up Φ(2.0) in a z-table = 0.9772 → 97.7% score below 90, so ~2.3% score above.",
+    "For the middle 95%: μ ± 1.96σ = 70 ± 19.6 → scores 50.4 to 89.6.",
+    "Probability between 60 and 80: Φ(1) − Φ(−1) = 0.8413 − 0.1587 = 0.6826 ≈ 68% (the empirical rule).",
+    "A z of 2.5 (student G) is rare — only ~0.6% of students score that high or higher."
+  ],
+  excel:[
+    "Score in A2. z-score: =(A2-70)/10 or =STANDARDIZE(A2,70,10).",
+    "Probability below a score: =NORM.DIST(A2,70,10,TRUE).",
+    "Probability above: =1-NORM.DIST(A2,70,10,TRUE).",
+    "Inverse (score for a percentile): =NORM.INV(0.95,70,10) gives the 95th-percentile score.",
+    "Standard normal only: =NORM.S.DIST(z,TRUE) and =NORM.S.INV(p)."
+  ],
+  python:`from scipy import stats
+
+mu, sigma = 70, 10
+# probability a score is below 90
+print("P(X<90):", round(stats.norm.cdf(90, mu, sigma), 4))
+# probability above 90
+print("P(X>90):", round(stats.norm.sf(90, mu, sigma), 4))
+# z-score
+print("z(90)  :", (90-mu)/sigma)
+# 95th percentile score
+print("95th %:", round(stats.norm.ppf(0.95, mu, sigma), 1))
+# middle 95% range
+print("mid95  :", stats.norm.interval(0.95, mu, sigma))`,
+  bigdata:[
+    "Check normality on a sample, not the whole population: a Q–Q plot or the Anderson–Darling test on a random subsample is enough.",
+    "z-scoring (standardisation) is a routine preprocessing step for ML at scale — StandardScaler in scikit-learn, or mean/stddev columns in Spark.",
+    "With millions of rows, tiny departures from normality become 'significant' in formal tests; judge normality visually (Q–Q) rather than by p-value.",
+    "For heavy-tailed big data (finance, web latency), prefer robust/quantile methods or model the tails explicitly rather than assuming normality."
+  ],
+  interpret:"Converting scores to z-scores puts everyone on a common ruler: student G (z=2.5) is exceptional, student B (z=0) is exactly average. Tail probabilities then answer real questions like 'what fraction beat 90?' (~2.3%).",
+  aiprompt:"You are a data analyst. Exam scores are normally distributed with mean 70 and standard deviation 10. Please:\n1. Convert the scores [55,70,82,90,64,78,95,50] to z-scores.\n2. For a score of 90, give the percentage of students scoring below and above it.\n3. Give the score range containing the middle 95% of students.\n4. Explain the 68–95–99.7 rule using this distribution.\nShow a table of score → z → percentile, plus a short plain-language interpretation.",
+  stata:`* mu = 70, sigma = 10
+* z-score and normal probabilities
+display (90-70)/10                 // z = 2
+display normal((90-70)/10)         // P(X<90) via standard normal CDF
+display 1 - normal((90-70)/10)     // P(X>90)
+display invnormal(0.95)*10 + 70    // 95th percentile score
+
+* If you have a variable 'score':
+* gen z = (score-70)/10
+* summarize z`,
+  eviews:`' Standard normal CDF and inverse
+scalar p_below90 = @cnorm((90-70)/10)   ' P(X<90)
+scalar p_above90 = 1 - p_below90
+scalar score95   = @qnorm(0.95)*10 + 70 ' 95th percentile
+show p_below90
+
+' For a series SCORE:
+' series z = (score - 70)/10
+' z.hist  ' should look standard normal if scores are normal`
+},
+
+"ttest":{
+  intro:"A t-test compares means when σ is unknown. Here a class of 10 students is tested against a target of 70, and two teaching groups are compared. We run one-sample, two-sample, and paired t-tests across all tools.",
+  table:{
+    caption:"Group A vs Group B exam scores (n = 10 each)",
+    headers:["#","Group A","Group B"],
+    rows:[["1","72","78"],["2","68","82"],["3","75","80"],["4","70","85"],["5","74","79"],
+      ["6","69","83"],["7","71","81"],["8","73","77"],["9","67","84"],["10","76","86"]]
+  },
+  byhand:[
+    "One-sample (Group A vs target 70): x̄_A = 71.5, s_A ≈ 2.9, n = 10.",
+    "t = (71.5 − 70)/(2.9/√10) = 1.5/0.917 ≈ 1.64, df = 9. Critical t₀.₀₂₅,₉ = 2.26 → fail to reject: A is not significantly above 70.",
+    "Two-sample (A vs B): x̄_A = 71.5, x̄_B = 81.5, difference = 10.",
+    "With pooled SD ≈ 3.0 and SE ≈ 1.34, t ≈ 10/1.34 ≈ 7.5, df = 18 → far beyond 2.10 → reject: B scores significantly higher.",
+    "The large t and clear gap show B's teaching method outperformed A's."
+  ],
+  excel:[
+    "Group A in A2:A11, Group B in B2:B11.",
+    "One-sample vs 70: =T.TEST(A2:A11, {70}, 2, 1) is not direct — instead compute t manually or use Data Analysis → t-Test.",
+    "Two-sample: =T.TEST(A2:A11, B2:B11, 2, 2) (2 tails, type 2 = equal variance) returns the p-value directly.",
+    "Paired data: use the last argument type = 1.",
+    "Full output (t, df, critical value): Data → Data Analysis → t-Test: Two-Sample Assuming Equal Variances."
+  ],
+  python:`from scipy import stats
+
+A = [72,68,75,70,74,69,71,73,67,76]
+B = [78,82,80,85,79,83,81,77,84,86]
+
+# One-sample: is A different from 70?
+print("one-sample:", stats.ttest_1samp(A, popmean=70))
+
+# Independent two-sample (Welch by default is safer):
+print("two-sample:", stats.ttest_ind(A, B, equal_var=False))
+
+# Paired (if A and B were the same students before/after):
+print("paired    :", stats.ttest_rel(A, B))`,
+  bigdata:[
+    "t-tests summarise into means, variances, and counts — all streamable, so group means over billions of rows are cheap (a groupby aggregation).",
+    "With very large n, even trivial mean differences become significant; report Cohen's d and confidence intervals, not just p.",
+    "For many groups at once, prefer ANOVA or a regression with group dummies over a flood of pairwise t-tests.",
+    "In A/B testing platforms, the two-sample t/z on conversion or revenue runs continuously; use sequential/Bayesian methods to avoid peeking bias."
+  ],
+  interpret:"Group A is not significantly above the target 70 (t≈1.64), but Group B clearly outperforms Group A (t≈7.5, p tiny). The t-test lets us separate a real teaching effect from ordinary sampling noise.",
+  aiprompt:"You are a data analyst. I have exam scores for two groups of 10 students. Group A: [72,68,75,70,74,69,71,73,67,76]; Group B: [78,82,80,85,79,83,81,77,84,86]. Please:\n1. Run a one-sample t-test checking whether Group A's mean differs from 70.\n2. Run an independent two-sample t-test comparing A and B (mention whether to assume equal variances).\n3. Report t, degrees of freedom, the p-value, and Cohen's d for the two-sample test.\n4. State the conclusion in plain language and note any assumptions.\nShow the numbers and a short interpretation.",
+  stata:`* Enter data in long form: score and group
+* One-sample test of Group A against 70:
+* ttest scoreA == 70
+* Two independent groups:
+* ttest score, by(group)
+* Paired (same subjects, two columns before/after):
+* ttest before == after
+
+* Example with two variables scoreA scoreB:
+ttest scoreA == 70
+ttest scoreA == scoreB, unpaired`,
+  eviews:`' Series SCOREA and SCOREB
+' One-sample: test mean of SCOREA against 70
+scorea.teststat(mean=70)
+
+' Two-sample mean equality test:
+' group g scorea scoreb
+' g.testbtw(mean)   ' tests equality of means across the series`
+},
+
+"ztest":{
+  intro:"A z-test is used when σ is known or n is large — its natural home is proportions. Here we test a conversion rate and a large-sample mean, by hand and in every tool, then scale to A/B testing.",
+  table:{
+    caption:"A/B test result (large samples)",
+    headers:["Variant","Visitors (n)","Conversions","Rate"],
+    rows:[["A (old)","4000","200","5.0%"],["B (new)","4000","260","6.5%"]]
+  },
+  byhand:[
+    "One proportion (is B's 6.5% above 5%?): p̂ = 0.065, p₀ = 0.05.",
+    "SE = √(p₀(1−p₀)/n) = √(0.05×0.95/4000) ≈ 0.00345.",
+    "z = (0.065 − 0.05)/0.00345 ≈ 4.35 → far beyond 1.96 → highly significant.",
+    "Two proportions (A vs B): pooled p̂ = 460/8000 = 0.0575; SE = √(p̂(1−p̂)(1/4000+1/4000)) ≈ 0.00521.",
+    "z = (0.065 − 0.05)/0.00521 ≈ 2.88 → beyond 1.96 → B's rate is significantly higher than A's."
+  ],
+  excel:[
+    "For a mean with known σ: z = (x̄−μ₀)/(σ/√n); p-value = =2*(1-NORM.S.DIST(ABS(z),TRUE)).",
+    "One proportion: build p̂, p₀, and SE in cells, then z = (phat−p0)/SE.",
+    "p-value from z: =2*(1-NORM.S.DIST(ABS(z),TRUE)) for two-tailed.",
+    "Two proportions: compute pooled p̂ = (x1+x2)/(n1+n2) and the pooled SE, then z.",
+    "Critical values: =NORM.S.INV(0.975) = 1.96 (two-tailed 5%)."
+  ],
+  python:`import numpy as np
+from statsmodels.stats.proportion import proportions_ztest
+
+# Two-proportion z-test: A vs B
+count = np.array([200, 260])     # conversions
+nobs  = np.array([4000, 4000])   # visitors
+z, p = proportions_ztest(count, nobs)
+print(f"two-proportion z = {z:.2f},  p = {p:.4f}")
+
+# One-sample mean z-test (sigma known):
+xbar, mu0, sigma, n = 103, 100, 15, 100
+z_mean = (xbar - mu0) / (sigma / n**0.5)
+print("mean z =", z_mean)`,
+  bigdata:[
+    "Proportion z-tests reduce to counts and totals — trivially parallel with a groupby-count over billions of events.",
+    "Experimentation platforms (A/B testing) run these continuously; guard against 'peeking' with sequential testing or fixed sample sizes.",
+    "At massive n the normal approximation is excellent, but tiny lifts turn significant — always report the absolute effect (e.g. +1.5 percentage points) and a confidence interval.",
+    "For rare events (very low conversion), use exact or Poisson methods; the normal approximation needs enough successes and failures (~≥10 each)."
+  ],
+  interpret:"B's 6.5% beats A's 5.0% with z ≈ 2.88 (p < 0.01) — a real 1.5-percentage-point lift, not noise. The z-test is ideal here because both samples are large and the data are proportions.",
+  aiprompt:"You are a data analyst. An A/B test gave: Variant A 200 conversions of 4000 visitors; Variant B 260 of 4000. Please:\n1. Run a two-proportion z-test comparing the conversion rates.\n2. Report z, the p-value, and whether the difference is significant at 5%.\n3. Give the absolute lift in percentage points and a 95% confidence interval for the difference.\n4. Warn me about peeking/early-stopping bias in A/B tests.\nShow the numbers and a short plain-language recommendation.",
+  stata:`* Two-proportion test (conversions out of visitors)
+prtesti 4000 0.05 4000 0.065
+
+* One-sample proportion vs 0.05:
+* prtesti 4000 0.065 0.05
+
+* One-sample mean with known sigma - use ztest:
+* ztest xbar = 100, n(100) sd(15)`,
+  eviews:`' For proportions, build the z by hand:
+scalar phatA = 200/4000
+scalar phatB = 260/4000
+scalar pool  = (200+260)/(4000+4000)
+scalar se    = @sqrt(pool*(1-pool)*(1/4000 + 1/4000))
+scalar z     = (phatB - phatA)/se
+scalar pval  = 2*(1 - @cnorm(@abs(z)))
+show z
+show pval`
+},
+
+"ftest":{
+  intro:"ANOVA (an F-test) compares 3+ group means at once. Here three fertilisers are tested on crop yield. We build the ANOVA table by hand, in Excel, and in software, then scale to many groups.",
+  table:{
+    caption:"Crop yield by fertiliser (n = 5 per group)",
+    headers:["Fertiliser A","Fertiliser B","Fertiliser C"],
+    rows:[["20","28","22"],["22","30","24"],["19","27","23"],["21","31","25"],["23","29","21"]]
+  },
+  byhand:[
+    "Group means: A = 21, B = 29, C = 23; grand mean = 24.33.",
+    "Between-group SS = Σ nⱼ(x̄ⱼ − grand)² = 5[(21−24.33)²+(29−24.33)²+(23−24.33)²] ≈ 5[11.09+21.78+1.78] ≈ 173.3.",
+    "Within-group SS = Σ(x − x̄ⱼ)² across all points ≈ 30. df_between = k−1 = 2, df_within = N−k = 12.",
+    "MS_between = 173.3/2 ≈ 86.7; MS_within = 30/12 = 2.5 → F = 86.7/2.5 ≈ 34.7.",
+    "Critical F(2,12) at 5% ≈ 3.89. F = 34.7 ≫ 3.89 → reject H₀: the fertilisers differ; a Tukey test then shows B is best."
+  ],
+  excel:[
+    "Put the three groups in columns A, B, C (5 rows each).",
+    "Data → Data Analysis → Anova: Single Factor.",
+    "Select the range A1:C6, tick 'Labels in first row', click OK.",
+    "Read the output: F, the p-value, and the critical F are all given in the ANOVA table.",
+    "If p < 0.05, the group means differ; follow with pairwise comparisons."
+  ],
+  python:`from scipy import stats
+import pandas as pd
+
+A = [20,22,19,21,23]
+B = [28,30,27,31,29]
+C = [22,24,23,25,21]
+
+F, p = stats.f_oneway(A, B, C)
+print(f"F = {F:.2f},  p = {p:.5f}")
+
+# Post-hoc Tukey to find WHICH groups differ:
+from statsmodels.stats.multicomp import pairwise_tukeyhsd
+df = pd.DataFrame({"yield":A+B+C,
+                   "grp":["A"]*5+["B"]*5+["C"]*5})
+print(pairwise_tukeyhsd(df["yield"], df["grp"]))`,
+  bigdata:[
+    "ANOVA's sums of squares are additive aggregations, so they compute in one distributed pass (Spark can group-and-aggregate the SS components).",
+    "With many groups or huge n, tiny mean differences become significant — report η² (effect size) and inspect group means, not just F.",
+    "For many factors at once, move to a regression / general linear model with factor dummies and interactions.",
+    "Check assumptions at scale with Levene's test (equal variance) on a sample; use Welch's ANOVA if variances differ."
+  ],
+  interpret:"F ≈ 34.7 (p tiny) means the three fertilisers do not all give the same yield. ANOVA proves a difference exists; the Tukey post-hoc then pinpoints that Fertiliser B (mean 29) is the standout.",
+  aiprompt:"You are a data analyst. Crop yields for three fertilisers (5 plots each): A=[20,22,19,21,23], B=[28,30,27,31,29], C=[22,24,23,25,21]. Please:\n1. Run a one-way ANOVA and report F, df, and the p-value.\n2. State whether at least one group mean differs at 5%.\n3. Run a Tukey post-hoc test to identify which fertilisers differ.\n4. Report the effect size (η²) and interpret it.\nShow the ANOVA table, the post-hoc result, and a plain-language conclusion.",
+  stata:`* Data in long form: yield and group
+* oneway yield group, tabulate
+* Post-hoc comparisons:
+* oneway yield group, bonferroni
+
+* Example inputting long data:
+input yield str1 grp
+20 "A"
+22 "A"
+19 "A"
+21 "A"
+23 "A"
+28 "B"
+30 "B"
+27 "B"
+31 "B"
+29 "B"
+22 "C"
+24 "C"
+23 "C"
+25 "C"
+21 "C"
+end
+encode grp, gen(g)
+oneway yield g, tabulate bonferroni`,
+  eviews:`' Stack the yields into one series YIELD with a factor GRP
+' One-way ANOVA via testbtw or an equation with dummies:
+' Simplest: group by category and test equality of means
+' equation eq1.ls yield c d_B d_C     ' dummies for groups B and C
+' A joint Wald test that d_B = d_C = 0 is the ANOVA F-test
+eq1.wald c(2)=0, c(3)=0`
+},
+
+"chisquare":{
+  intro:"Chi-square tests counts in categories. Here we test whether product preference is independent of gender using a contingency table, by hand and in every tool, then scale to large surveys.",
+  table:{
+    caption:"Observed counts: gender × product choice",
+    headers:["","Product X","Product Y","Product Z","Row total"],
+    rows:[["Male","30","40","30","100"],["Female","20","50","30","100"],["Col total","50","90","60","200"]]
+  },
+  byhand:[
+    "Expected count Eᵢⱼ = (row total × col total)/grand total. E(Male,X) = 100×50/200 = 25; E(Male,Y)=45; E(Male,Z)=30; females mirror these.",
+    "χ² = Σ(O−E)²/E. Male: (30−25)²/25 + (40−45)²/45 + (30−30)²/30 = 1.0 + 0.56 + 0 = 1.56.",
+    "Female: (20−25)²/25 + (50−45)²/45 + (30−30)²/30 = 1.0 + 0.56 + 0 = 1.56.",
+    "Total χ² = 1.56 + 1.56 = 3.12. df = (2−1)(3−1) = 2.",
+    "Critical χ²₀.₀₅,₂ = 5.99. Since 3.12 < 5.99 → fail to reject: preference appears independent of gender."
+  ],
+  excel:[
+    "Enter the observed 2×3 table in a block, e.g. B2:D3.",
+    "Build the expected table using =row_total*col_total/grand_total in matching cells.",
+    "p-value in one step: =CHISQ.TEST(observed_range, expected_range).",
+    "Or get the statistic: =CHISQ.INV.RT(alpha, df) for the critical value; df = (rows−1)(cols−1).",
+    "If p < 0.05 the variables are associated; otherwise independent."
+  ],
+  python:`import numpy as np
+from scipy.stats import chi2_contingency
+
+# rows = gender, cols = product X/Y/Z
+observed = np.array([[30, 40, 30],
+                     [20, 50, 30]])
+
+chi2, p, dof, expected = chi2_contingency(observed)
+print(f"chi2 = {chi2:.2f},  df = {dof},  p = {p:.4f}")
+print("expected:\\n", expected)
+
+# Effect size (Cramer's V):
+n = observed.sum()
+V = np.sqrt(chi2 / (n * (min(observed.shape)-1)))
+print("Cramer's V =", round(V, 3))`,
+  bigdata:[
+    "Contingency tables are just group-by counts, so they build from massive categorical data in one aggregation (SQL GROUP BY, Spark crosstab).",
+    "At large n, χ² almost always turns significant — report Cramér's V for the strength of association, not just the p-value.",
+    "For many category pairs, screen with χ² but correct for multiple testing (Bonferroni/FDR) to avoid false associations.",
+    "Sparse cells (expected < 5) still matter at scale — merge rare categories or use exact/Monte-Carlo tests."
+  ],
+  interpret:"χ² = 3.12 < 5.99, so preference and gender look independent in this sample — the small observed differences are within chance. A significant result would instead prompt Cramér's V to gauge how strong the link is.",
+  aiprompt:"You are a data analyst. I have a contingency table of gender × product choice: Male = [X:30, Y:40, Z:30]; Female = [X:20, Y:50, Z:30]. Please:\n1. Compute the expected counts and the chi-square statistic.\n2. Give the degrees of freedom and the p-value, and state the conclusion at 5%.\n3. Report Cramér's V as the effect size and interpret its strength.\n4. Note any assumption issues (e.g. expected counts below 5).\nShow the observed vs expected tables and a plain-language conclusion.",
+  stata:`* Enter the table and run chi-square test of independence
+* If you have raw data with gender and product:
+* tabulate gender product, chi2 expected V
+
+* From a summarised table, recreate rows then:
+input gender product freq
+1 1 30
+1 2 40
+1 3 30
+2 1 20
+2 2 50
+2 3 30
+end
+tabulate gender product [fweight=freq], chi2 expected`,
+  eviews:`' Chi-square independence is easiest from raw categorical series
+' Create a group of the two categorical series and cross-tabulate:
+' group g gender product
+' g.crosstab(chisq)     ' produces the table and the chi-square test
+
+' Or compute manually from observed/expected using @sum of (O-E)^2/E`
+},
+
+"hypothesis":{
+  intro:"Hypothesis testing is the decision framework behind every test. Here we walk one complete test end-to-end — a factory claims mean fill = 500 ml — showing the same five steps by hand and in each tool.",
+  table:{
+    caption:"Bottle fill volumes (ml) — sample n = 10",
+    headers:["#","ml","#","ml"],
+    rows:[["1","498","6","502"],["2","495","7","497"],["3","501","8","496"],
+      ["4","499","9","494"],["5","503","10","500"]]
+  },
+  byhand:[
+    "Step 1 — Hypotheses: H₀: μ = 500; H₁: μ ≠ 500 (two-tailed).",
+    "Step 2 — Choose α = 0.05 and a one-sample t-test (σ unknown).",
+    "Step 3 — Statistic: x̄ = 498.5, s ≈ 2.9, n = 10 → t = (498.5−500)/(2.9/√10) ≈ −1.64, df = 9.",
+    "Step 4 — Decide: |−1.64| < critical 2.26 (and p ≈ 0.14 > 0.05) → fail to reject H₀.",
+    "Step 5 — Interpret: no significant evidence the mean fill differs from 500 ml; the small shortfall is within sampling noise."
+  ],
+  excel:[
+    "Volumes in A2:A11.",
+    "x̄ = =AVERAGE(A2:A11); s = =STDEV.S(A2:A11); n = =COUNT(A2:A11).",
+    "t = (AVERAGE−500)/(s/SQRT(n)) in a cell.",
+    "Two-tailed p-value: =T.DIST.2T(ABS(t), n-1).",
+    "Decision rule: if the p-value ≤ 0.05, reject H₀; here it will exceed 0.05."
+  ],
+  python:`from scipy import stats
+
+fill = [498,495,501,499,503,502,497,496,494,500]
+
+# Full one-sample test against the claimed 500 ml
+t, p = stats.ttest_1samp(fill, popmean=500)
+print(f"t = {t:.2f},  p = {p:.3f}")
+
+decision = "reject H0" if p <= 0.05 else "fail to reject H0"
+print("decision:", decision)
+
+# Confidence interval (duality with the test):
+import numpy as np
+m, s, n = np.mean(fill), np.std(fill, ddof=1), len(fill)
+ci = stats.t.interval(0.95, n-1, loc=m, scale=s/np.sqrt(n))
+print("95% CI:", tuple(round(x,2) for x in ci))`,
+  bigdata:[
+    "The mechanics scale trivially (means and SDs are streaming aggregates); the real danger at scale is that huge n makes trivial deviations 'significant'.",
+    "Always pair the p-value with an effect size and a confidence interval — the CI shows the practical size of any deviation.",
+    "Guard against p-hacking: with many metrics/segments, pre-register hypotheses or correct for multiple comparisons (Bonferroni/FDR).",
+    "For streaming/continuous monitoring, use sequential testing so repeated looks don't inflate the false-positive rate."
+  ],
+  interpret:"t ≈ −1.64, p ≈ 0.14 → we fail to reject H₀. The bottles average slightly under 500 ml, but not by enough to rule out chance. The 95% CI (which includes 500) tells the same story as the test.",
+  aiprompt:"You are a data analyst. A factory claims bottles are filled to 500 ml. Sample (n=10): [498,495,501,499,503,502,497,496,494,500]. Please:\n1. State H₀ and H₁ and choose an appropriate test and α.\n2. Compute the test statistic, degrees of freedom, and the p-value.\n3. Give the decision and a 95% confidence interval for the mean.\n4. Explain the result in plain language and note the difference between statistical and practical significance.\nShow each of the five testing steps clearly.",
+  stata:`input ml
+498
+495
+501
+499
+503
+502
+497
+496
+494
+500
+end
+
+* Complete one-sample t-test against 500
+ttest ml == 500
+* Output gives t, df, p-value (two-tailed and one-tailed) and the 95% CI`,
+  eviews:`' Series ML
+' One-sample test that the mean equals 500:
+ml.teststat(mean=500)
+' The output reports the t-statistic and its p-value.
+
+' A 95% confidence interval:
+scalar lo = @mean(ml) - 1.96*@stdev(ml)/@sqrt(@obs(ml))
+scalar hi = @mean(ml) + 1.96*@stdev(ml)/@sqrt(@obs(ml))
+show lo
+show hi`
+},
+
+"type-errors":{
+  intro:"Type I and II errors quantify a test's two failure modes. Here we plan a study: given an effect size, α, and desired power, we compute the required sample size — by hand, in Excel, and in software.",
+  table:{
+    caption:"The decision × reality table",
+    headers:["Decision","H₀ true","H₀ false"],
+    rows:[["Reject H₀","Type I error (α)","Correct ✓ (power = 1−β)"],
+      ["Fail to reject","Correct ✓ (1−α)","Type II error (β)"]]
+  },
+  byhand:[
+    "Set the pieces: significance α = 0.05 (two-tailed → z_{α/2} = 1.96), desired power 0.80 (→ z_β = 0.84), effect size d = 0.5 (medium).",
+    "Sample-size formula (one-sample z approximation): n ≈ ((z_{α/2} + z_β)/d)².",
+    "n ≈ ((1.96 + 0.84)/0.5)² = (2.80/0.5)² = (5.6)² = 31.4.",
+    "Round up → n ≈ 32 per group to detect a medium effect with 80% power.",
+    "Read the trade-off: smaller effects, higher power, or smaller α all demand larger n."
+  ],
+  excel:[
+    "Enter z_alpha = =NORM.S.INV(0.975) = 1.96 and z_beta = =NORM.S.INV(0.80) = 0.84.",
+    "Enter the effect size d (e.g. 0.5) in a cell.",
+    "Required n: =((zalpha + zbeta)/d)^2, then round up with =ROUNDUP(...,0).",
+    "Try different d values to see how sample size explodes for small effects.",
+    "Power for a fixed n can be back-solved similarly using NORM.S.DIST."
+  ],
+  python:`from statsmodels.stats.power import TTestIndPower
+
+analysis = TTestIndPower()
+
+# Sample size for effect size 0.5, alpha 0.05, power 0.80
+n = analysis.solve_power(effect_size=0.5, alpha=0.05, power=0.80,
+                         alternative="two-sided")
+print("n per group:", round(n, 1))
+
+# Power achieved with n = 20 per group:
+power = analysis.solve_power(effect_size=0.5, alpha=0.05, nobs1=20)
+print("power at n=20:", round(power, 3))`,
+  bigdata:[
+    "At big-data scale power is rarely the problem — n is huge, so even microscopic effects are detected; the risk flips to over-detecting trivial differences.",
+    "The real Type I danger at scale is multiple testing: thousands of metrics/segments mean many false positives. Control with Bonferroni or FDR (Benjamini–Hochberg).",
+    "Report minimum detectable effect (MDE) alongside results so stakeholders know how small an effect the test could catch.",
+    "In continuous experimentation, use sequential or Bayesian methods so ongoing monitoring doesn't inflate α."
+  ],
+  interpret:"To catch a medium effect (d=0.5) with 80% power at α=0.05, you need ~32 per group. Power analysis done before collecting data prevents the classic waste of an underpowered study that finds nothing.",
+  aiprompt:"You are a data analyst helping plan a study. I want to detect a medium effect size (Cohen's d = 0.5) with significance α = 0.05 (two-sided) and power 0.80. Please:\n1. Explain Type I (α) and Type II (β) errors and power in plain language.\n2. Compute the required sample size per group.\n3. Show how the required n changes if the effect is small (d=0.2) or large (d=0.8).\n4. Explain the multiple-testing risk if I later test many metrics, and how to correct it.\nShow the calculation and a short interpretation.",
+  stata:`* Power and sample-size planning
+* Sample size for a two-sample mean comparison:
+power twomeans 0 0.5, sd(1) power(0.80) alpha(0.05)
+
+* Power for a given n:
+power twomeans 0 0.5, sd(1) n(40) alpha(0.05)
+
+* vary the effect size to see how n changes
+power twomeans 0 (0.2 0.5 0.8), sd(1) power(0.80)`,
+  eviews:`' EViews has no one-click power command; compute via the formula.
+scalar zalpha = @qnorm(0.975)   ' 1.96
+scalar zbeta  = @qnorm(0.80)    ' 0.84
+scalar d      = 0.5             ' effect size
+scalar n      = ((zalpha + zbeta)/d)^2
+show n                          ' ~ 31.4 -> round up to 32`
+}
+
+};
+
+
+// merge into the main DEEPDIVE object
+Object.assign(DEEPDIVE, DEEPDIVE2);
+// ============ PROFESSOR'S NOTES (university teaching layer) ============
+// Keyed by slug. Each: {intuition, formal:[[head,body]], pitfalls:[..],
+//   exercises:[{q,steps,level}], refs:[[name,url]] }
+const TEACH = {
+
+"variables":{
+  intuition:"Think of a variable as a <i>question you can ask every subject</i> and get a different answer. 'How tall are you?' gives numbers; 'What is your nationality?' gives labels. The whole of statistics is just clever ways to summarise the pile of answers — but the <b>type</b> of answer decides which methods are legal. This is why we spend the first lecture here: choosing the wrong summary (say, the 'average nationality') is not a small error, it is meaningless.",
+  formal:[
+    ["Formal definition","A variable X is a function from the sample space of subjects Ω to a set of values V, i.e. X : Ω → V. When V ⊆ ℝ we call X <b>quantitative</b>; otherwise <b>categorical</b>."],
+    ["Stevens' typology","S. S. Stevens (1946) defined four measurement scales by the transformations that preserve meaning: nominal (permutations of labels), ordinal (monotone increasing maps), interval (positive affine maps ax+b, a>0), ratio (positive scaling ax, a>0). The permitted statistics rise with the scale: mode → +median → +mean → +geometric mean/CV."],
+    ["Why the true zero matters","Ratio scales have an absolute zero, so ratios are meaningful: 40 kg is twice 20 kg. Interval scales lack it: 40°C is <i>not</i> twice as hot as 20°C, because 0°C is a convention, not an absence of heat."]
+  ],
+  pitfalls:[
+    "Treating coded categories as numbers — e.g. computing the mean of gender coded 1/2. The code is a label, not a quantity.",
+    "Assuming Likert (1–5) gaps are equal. They are ordinal; the distance from 'agree' to 'strongly agree' need not equal 'neutral' to 'agree'. Many researchers still use means on them — know that this is a debated approximation.",
+    "Confusing discrete with continuous when a count is large. 'Number of website visits' is discrete even if it reaches millions."
+  ],
+  exercises:[
+    {level:"Easy",q:"Classify each: (a) ZIP code, (b) marathon finish time, (c) T-shirt size S/M/L, (d) number of siblings.",
+     steps:["(a) Nominal — a label, not a magnitude.","(b) Ratio, continuous — true zero, any value.","(c) Ordinal — ordered categories, unequal gaps.","(d) Ratio, discrete — counted, true zero."]},
+    {level:"Medium",q:"A researcher codes education as 1=primary, 2=secondary, 3=tertiary and reports a mean of 2.4. What is wrong, and what should they report?",
+     steps:["Education here is ordinal; the numbers are ranks, not amounts.","A mean assumes equal spacing between levels, which is unjustified.","Report the median or the modal category, and the full frequency distribution."]},
+    {level:"Hard",q:"Explain why temperature in Kelvin is ratio but in Celsius is interval, and give one statistic that is valid on Kelvin but misleading on Celsius.",
+     steps:["Kelvin has an absolute zero (no molecular motion); Celsius zero is the freezing point of water, a convention.","On Kelvin, ratios are meaningful: 300 K is twice 150 K.","The coefficient of variation (SD/mean) is meaningful on Kelvin but changes arbitrarily on Celsius because the mean depends on the offset."]}
+  ],
+  refs:[
+    ["Stevens (1946) 'On the Theory of Scales of Measurement'","https://www.science.org/doi/10.1126/science.103.2684.677"],
+    ["OpenStax Introductory Statistics – Ch.1","https://openstax.org/books/introductory-statistics/pages/1-introduction"]
+  ]
+},
+
+"descriptive":{
+  intuition:"Every dataset is a cloud of numbers, and the human mind cannot hold a cloud. Descriptive statistics give the cloud a <b>centre of gravity</b> (mean/median) and a <b>width</b> (SD/IQR). If someone tells you only the average, you are half-blind: 'average water depth 1 m' drowned many people. Always pair a measure of centre with a measure of spread.",
+  formal:[
+    ["Mean as a balance point","The sample mean minimises squared distance: x̄ = argmin_c Σ(xᵢ − c)². The median minimises absolute distance: med = argmin_c Σ|xᵢ − c|. That single fact explains why the mean chases outliers and the median resists them."],
+    ["Why n−1 (Bessel's correction)","Using x̄ (itself estimated from the data) instead of the true μ makes Σ(xᵢ−x̄)² systematically too small. Dividing by n−1 rather than n corrects the bias, giving E[s²] = σ². The '−1' is the one degree of freedom spent estimating the mean."],
+    ["Standardisation","z = (x − x̄)/s re-expresses any value as 'number of SDs from the mean', making different variables comparable and feeding directly into the normal model and regression."]
+  ],
+  pitfalls:[
+    "Reporting a mean for strongly skewed data (income, house prices) where the median is the honest 'typical' value.",
+    "Forgetting units: variance is in squared units and is hard to interpret; the SD returns to original units — prefer it when communicating.",
+    "Comparing SDs across variables with very different means. Use the coefficient of variation (CV = s/x̄) for a scale-free comparison."
+  ],
+  exercises:[
+    {level:"Easy",q:"Data: 5, 5, 6, 8, 21. Find the mean and median. Which better represents the 'typical' value?",
+     steps:["Mean = 45/5 = 9.","Median = 6 (middle of sorted 5,5,6,8,21).","The median (6) is more typical; the 21 inflates the mean."]},
+    {level:"Medium",q:"Two classes both average 70. Class A has SD 3, Class B has SD 15. What does this tell a teacher?",
+     steps:["Same centre, very different spread.","Class A is homogeneous — most students near 70.","Class B is diverse — many well below/above 70, so uniform teaching will misfit many; consider differentiated instruction."]},
+    {level:"Hard",q:"Show numerically that adding a constant c to every value leaves the SD unchanged but shifts the mean by c. Use 2, 4, 6 with c = 10.",
+     steps:["Original: mean = 4, deviations −2,0,2 → s² = 8/2 = 4, s = 2.","After +10: 12,14,16, mean = 14 (shifted by 10).","Deviations still −2,0,2 → s = 2 unchanged. Spread is translation-invariant; centre is not."]}
+  ],
+  refs:[
+    ["OpenStax – Descriptive Statistics","https://openstax.org/books/introductory-statistics/pages/2-introduction"],
+    ["Khan Academy – Summarizing quantitative data","https://www.khanacademy.org/math/statistics-probability/summarizing-quantitative-data"]
+  ]
+},
+
+"outliers":{
+  intuition:"An outlier is the data point that makes you say 'wait, what?'. It is not automatically bad — it may be the most important observation you have (the fraudulent transaction, the faulty batch, the record-breaking athlete). The skill is not deletion but <b>diagnosis</b>: is it an error to fix, or a real signal to explain?",
+  formal:[
+    ["Tukey's fences","John Tukey defined the fences Q1 − 1.5·IQR and Q3 + 1.5·IQR. For normal data these flag about 0.7% of points, so a handful of flags in large data is expected, not alarming. The multiplier 3 gives 'far out' values."],
+    ["Z-score rule and its weakness","|z| > 3 flags outliers, but the mean and SD used to compute z are themselves inflated by the outlier (masking). Robust alternatives use the median and MAD: robust z = 0.6745·(x − median)/MAD."],
+    ["Influence vs outlier","In regression, a point can be an outlier in y, in x (high leverage), or influential (changes the fitted line). Cook's distance measures influence — a large residual alone is not the whole story."]
+  ],
+  pitfalls:[
+    "Deleting outliers to 'clean' data and improve p-values — this is data manipulation unless there is a documented reason (error, wrong population).",
+    "Using mean±3SD on skewed data, which wrongly flags the long tail. Prefer IQR fences or robust statistics for non-normal data.",
+    "Masking: several outliers together can hide each other from the z-score test; inspect a boxplot and a scatter, not just one rule."
+  ],
+  exercises:[
+    {level:"Easy",q:"Data: 12, 14, 15, 16, 18, 60. Use IQR fences to test whether 60 is an outlier.",
+     steps:["Q1 = 14, Q3 = 18 → IQR = 4.","Upper fence = 18 + 1.5×4 = 24.","60 > 24 → outlier."]},
+    {level:"Medium",q:"Why can a single extreme outlier hide itself from the |z|>3 rule? Illustrate the idea.",
+     steps:["The outlier inflates both x̄ and s.","A larger s shrinks every z-score, including the outlier's own.","So the point may score |z| < 3 and escape detection — this is 'masking'. Robust MAD-based scores avoid it."]},
+    {level:"Hard",q:"A regression point sits far to the right on x but exactly on the trend line. Is it an outlier? Is it influential? Explain leverage vs influence.",
+     steps:["It has high leverage (extreme in x) but a small residual (on the line).","It is not an outlier in the usual residual sense.","It could still be influential — removing it may change the slope's stability; check Cook's distance, not the residual alone."]}
+  ],
+  refs:[
+    ["NIST/SEMATECH e-Handbook – Outliers","https://www.itl.nist.gov/div898/handbook/prc/section1/prc16.htm"],
+    ["Rousseeuw & Hubert – Robust statistics for outlier detection","https://onlinelibrary.wiley.com/doi/10.1002/widm.2"]
+  ]
+},
+
+"normal":{
+  intuition:"The bell curve is nature's favourite shape because of a deep reason: when many small independent effects add up, their sum tends to a normal — this is the Central Limit Theorem. Heights, measurement errors, exam totals are all 'sums of many little causes', so they cluster in a bell. Master the normal and you hold the key to most of inference.",
+  formal:[
+    ["The density","f(x) = (1/(σ√(2π))) · exp(−(x−μ)²/(2σ²)). It is symmetric about μ, with inflection points at μ±σ. μ sets the location, σ the width."],
+    ["Central Limit Theorem","For i.i.d. X₁…Xₙ with mean μ and finite variance σ², the sample mean satisfies (X̄ₙ − μ)/(σ/√n) → N(0,1) as n → ∞. This is <i>why</i> the normal appears even when the data themselves aren't normal — and why sampling distributions of means are normal for large n."],
+    ["Standardisation & z-tables","Any X ~ N(μ,σ²) becomes Z = (X−μ)/σ ~ N(0,1). Probabilities are areas: P(X ≤ x) = Φ((x−μ)/σ), where Φ is the standard normal CDF."]
+  ],
+  pitfalls:[
+    "Assuming everything is normal. Income, waiting times, and city sizes are right-skewed; forcing a normal model misleads. Check with a histogram or Q–Q plot.",
+    "Confusing 'the data are normal' with 'the sample mean is normal'. The CLT gives the second for large n even when the first is false.",
+    "Reading the empirical rule as exact. 68/95/99.7 are rounded; exact tail areas need the z-table or software."
+  ],
+  exercises:[
+    {level:"Easy",q:"Heights are N(170, 10²) cm. What z-score is 185 cm, and roughly what % are taller?",
+     steps:["z = (185−170)/10 = 1.5.","P(Z > 1.5) ≈ 0.067 → about 6.7% are taller."]},
+    {level:"Medium",q:"A test is N(500, 100²). Between which scores do the middle 95% of students fall?",
+     steps:["Middle 95% ≈ μ ± 1.96σ.","500 ± 1.96×100 = 500 ± 196.","Approximately 304 to 696."]},
+    {level:"Hard",q:"Daily returns of a stock are NOT normal (fat tails), yet the average of 250 daily returns is treated as normal. Justify using the CLT and state one caveat.",
+     steps:["The mean of 250 i.i.d.-ish returns is approximately normal by the CLT, regardless of the per-day shape.","So inference on the mean return can use normal theory.","Caveat: returns are not fully independent (volatility clustering) and variance must be finite — heavy tails slow the convergence, so treat with care."]}
+  ],
+  refs:[
+    ["OpenStax – The Normal Distribution","https://openstax.org/books/introductory-statistics/pages/6-introduction"],
+    ["Seeing Theory – Central Limit Theorem (visual)","https://seeing-theory.brown.edu/probability-distributions/index.html"]
+  ]
+},
+
+"ttest":{
+  intuition:"The t-test answers 'is this difference in averages real, or could plain luck produce it?'. Because we don't know the true spread, we <b>estimate</b> it from the sample — and that extra uncertainty is exactly what William Gosset ('Student', 1908) baked into the t-distribution's fatter tails while working at Guinness. Small sample → more caution → fatter tails.",
+  formal:[
+    ["The statistic & its law","t = (x̄ − μ₀)/(s/√n). If the data are normal, t follows a Student's t-distribution with n−1 degrees of freedom. As df → ∞, t → N(0,1)."],
+    ["Two-sample (pooled)","For equal variances, t = (x̄₁ − x̄₂)/(s_p·√(1/n₁+1/n₂)) with pooled s_p² = [(n₁−1)s₁²+(n₂−1)s₂²]/(n₁+n₂−2). Welch's t (unequal variances) is the safer default in practice."],
+    ["Paired = one-sample on differences","A paired t-test computes dᵢ = beforeᵢ − afterᵢ and tests whether the mean difference is 0 — removing between-subject variation and boosting power."],
+    ["Assumptions","Independence, approximate normality (or large n via CLT), and — for the pooled two-sample — equal variances. Effect size: Cohen's d = (x̄₁−x̄₂)/s_p."]
+  ],
+  pitfalls:[
+    "Using an independent-samples t-test on paired data (e.g. before/after the same people) — this wastes the pairing and loses power.",
+    "Reporting only p. A tiny, useless difference can be 'significant' with large n; always report Cohen's d and a confidence interval.",
+    "Assuming equal variances without checking. Prefer Welch's t by default; it is robust and rarely worse."
+  ],
+  exercises:[
+    {level:"Easy",q:"n=9, x̄=104, s=6, test H₀: μ=100. Compute t and its df.",
+     steps:["SE = 6/√9 = 2.","t = (104−100)/2 = 2.0.","df = 9−1 = 8. Compare to critical t₀.₀₂₅,₈ ≈ 2.306 → just fails to reject at 5%."]},
+    {level:"Medium",q:"A clinic measures blood pressure on 20 patients before and after a drug. Which test, and why is it more powerful than treating the two sets as independent?",
+     steps:["Use a paired t-test on the within-patient differences.","Pairing removes between-patient variability (some people just run high).","With that noise gone, the standard error shrinks and the test detects smaller true effects."]},
+    {level:"Hard",q:"Two groups: n₁=n₂=30, x̄₁=52, x̄₂=48, s₁=10, s₂=10. Estimate t (pooled) and Cohen's d, and interpret both.",
+     steps:["s_p = 10; SE = 10·√(1/30+1/30) ≈ 2.58.","t = (52−48)/2.58 ≈ 1.55 → not significant at 5% (crit ≈ 2.0).","Cohen's d = 4/10 = 0.4 (a small-to-medium effect). The effect may be real but the sample lacks power to confirm it."]}
+  ],
+  refs:[
+    ["Student (1908) 'The Probable Error of a Mean'","https://www.jstor.org/stable/2331554"],
+    ["OpenStax – The t-Distribution","https://openstax.org/books/introductory-statistics/pages/8-introduction"]
+  ]
+},
+
+"ztest":{
+  intuition:"The z-test is the t-test's confident older sibling: it is used when you either know the population spread or have so much data that your estimate of it is essentially perfect. Its natural home today is <b>proportions</b> — conversion rates, pass rates, defect rates — where big samples are common and the normal approximation shines.",
+  formal:[
+    ["Mean, σ known","z = (x̄ − μ₀)/(σ/√n) ~ N(0,1) exactly under H₀ when data are normal, approximately otherwise by the CLT."],
+    ["One proportion","z = (p̂ − p₀)/√(p₀(1−p₀)/n). Valid when np₀ and n(1−p₀) are both ≥ ~10 so the binomial is well-approximated by a normal."],
+    ["Two proportions","z = (p̂₁ − p̂₂)/√(p̂(1−p̂)(1/n₁+1/n₂)) with pooled p̂ = (x₁+x₂)/(n₁+n₂). This underlies most A/B tests."],
+    ["Critical values","Two-tailed α=0.05 → ±1.96; one-tailed → 1.645; α=0.01 two-tailed → ±2.576."]
+  ],
+  pitfalls:[
+    "Using a z-test with small n and unknown σ — that is the t-test's job; z understates uncertainty and gives too-narrow intervals.",
+    "Applying the normal approximation to proportions when successes or failures are few (rule of thumb <10) — use an exact binomial test instead.",
+    "Peeking at an A/B test and stopping when it first hits significance — repeated looks inflate the false-positive rate; fix n or use sequential methods."
+  ],
+  exercises:[
+    {level:"Easy",q:"σ=15, n=100, x̄=103, test H₀: μ=100 (two-tailed, α=0.05).",
+     steps:["SE = 15/10 = 1.5.","z = 3/1.5 = 2.0.","|2.0| > 1.96 → reject H₀."]},
+    {level:"Medium",q:"A landing page converts 120 of 2000 visitors (6%). The old page converted 5%. Is 6% significantly higher (one-tailed)?",
+     steps:["p̂ = 0.06, p₀ = 0.05; SE = √(0.05·0.95/2000) ≈ 0.00487.","z = (0.06−0.05)/0.00487 ≈ 2.05.","2.05 > 1.645 → yes, significant at 5% one-tailed."]},
+    {level:"Hard",q:"A/B test: A 200/4000, B 240/4000. Test the difference in conversion (two-tailed).",
+     steps:["p̂_A = 0.05, p̂_B = 0.06; pooled p̂ = 440/8000 = 0.055.","SE = √(0.055·0.945·(1/4000+1/4000)) ≈ 0.00509.","z = (0.06−0.05)/0.00509 ≈ 1.96 → right at the 5% boundary; treat as borderline and gather more data."]}
+  ],
+  refs:[
+    ["Khan Academy – Significance tests (z)","https://www.khanacademy.org/math/statistics-probability/significance-tests-one-sample"],
+    ["Kohavi et al. – Trustworthy Online Controlled Experiments","https://experimentguide.com/"]
+  ]
+},
+
+"ftest":{
+  intuition:"When you compare three or more groups, running many t-tests is like buying many lottery tickets for a false positive — each test carries its own 5% risk and they accumulate. ANOVA asks one global question instead: 'is the spread <b>between</b> group means larger than the spread <b>within</b> groups?' If yes, at least one group truly differs. The F-ratio is that between/within comparison.",
+  formal:[
+    ["Variance partition","Total SS = Between SS + Within SS. Dividing each by its df gives mean squares: MS_between (df = k−1) and MS_within (df = N−k)."],
+    ["The F-statistic","F = MS_between / MS_within. Under H₀ (all means equal) F follows an F-distribution with (k−1, N−k) df; large F → reject."],
+    ["Multiple-comparison problem","With k groups there are k(k−1)/2 pairwise tests; the family-wise error inflates. ANOVA controls it with one test, and post-hoc procedures (Tukey HSD, Bonferroni) then locate the differing pairs while holding error in check."],
+    ["Assumptions","Independent samples, approximate normality of residuals, and homogeneity of variance (Levene's test). Effect size: η² = Between SS / Total SS."]
+  ],
+  pitfalls:[
+    "Concluding 'which group is best' straight from a significant ANOVA — it only says at least one differs; you need a post-hoc test.",
+    "Ignoring unequal variances; with very different spreads use Welch's ANOVA.",
+    "Running many t-tests instead of ANOVA and not correcting α — the false-positive rate balloons with the number of comparisons."
+  ],
+  exercises:[
+    {level:"Easy",q:"MS_between = 50, MS_within = 10. Compute F and state what a large F implies.",
+     steps:["F = 50/10 = 5.0.","Between-group variation is 5× the within-group noise.","A large F is evidence that at least one group mean differs."]},
+    {level:"Medium",q:"Three teaching methods, n=10 each. Why is one ANOVA better than three t-tests at α=0.05?",
+     steps:["Three t-tests give roughly 1−(0.95)³ ≈ 14% chance of a false positive.","ANOVA tests all three simultaneously at a true 5% level.","It controls the family-wise error, then Tukey HSD identifies the specific differences."]},
+    {level:"Hard",q:"An ANOVA gives F(2,27)=6.4, p=0.005, η²=0.32. Interpret significance AND practical importance, and state the next step.",
+     steps:["p=0.005 < 0.05 → reject H₀; the group means are not all equal.","η²=0.32 → about 32% of the variance in the outcome is explained by group — a large effect.","Next: run Tukey HSD to find which specific pairs of groups differ."]}
+  ],
+  refs:[
+    ["OpenStax – F Distribution and One-Way ANOVA","https://openstax.org/books/introductory-statistics/pages/13-introduction"],
+    ["Fisher (1925) Statistical Methods for Research Workers","https://en.wikipedia.org/wiki/Statistical_Methods_for_Research_Workers"]
+  ]
+},
+
+"chisquare":{
+  intuition:"Chi-square is the test for <b>counts in boxes</b>. You have a table of how often each category occurred, and a theory of how often it <i>should</i> occur. Chi-square measures the total gap between observed and expected: small gap → theory holds; big gap → something real is going on. It powers 'is this die fair?' and 'are these two traits related?'.",
+  formal:[
+    ["The statistic","χ² = Σ (Oᵢ − Eᵢ)²/Eᵢ. Each term is a squared, scaled surprise; summing them gives an overall discrepancy that follows a χ² distribution under H₀."],
+    ["Goodness of fit","Tests one categorical variable against an expected distribution; df = k − 1 (minus extra parameters estimated)."],
+    ["Independence","In an r×c contingency table, Eᵢⱼ = (rowᵢ total × colⱼ total)/grand total; df = (r−1)(c−1). H₀ is that the two variables are independent."],
+    ["Conditions","Expected counts should be ≥ 5 in most cells; for 2×2 tables with small counts use Fisher's exact test. Cramér's V measures association strength."]
+  ],
+  pitfalls:[
+    "Running chi-square on percentages or means — it requires raw counts.",
+    "Small expected counts (<5) invalidate the approximation; combine categories or use Fisher's exact test.",
+    "A significant χ² says the variables are associated, not how strongly — report Cramér's V for effect size."
+  ],
+  exercises:[
+    {level:"Easy",q:"A spinner (4 equal colours) spun 80 times gives 28,18,16,18. Compute χ² (E=20 each) and df.",
+     steps:["Terms: (28−20)²/20=3.2, (18−20)²/20=0.2, (16−20)²/20=0.8, (18−20)²/20=0.2.","χ² = 3.2+0.2+0.8+0.2 = 4.4.","df = k−1 = 3; crit ≈ 7.81 → fail to reject: consistent with a fair spinner."]},
+    {level:"Medium",q:"In a 2×2 table of (smoker/non-smoker) × (cough/no cough), one expected cell is 3.5. What should you do?",
+     steps:["An expected count below 5 breaks the χ² approximation for a 2×2 table.","Use Fisher's exact test instead, which is valid for small counts.","Report the exact p-value and, if desired, the odds ratio for effect size."]},
+    {level:"Hard",q:"A 3×3 independence test gives χ²=20.1. Find df, compare to the 5% critical value, and explain what rejecting means and what it does NOT tell you.",
+     steps:["df = (r−1)(c−1) = (3−1)(3−1) = 4.","Critical χ²₀.₀₅,₄ ≈ 9.49.","χ²=20.1 ≫ 9.49 → reject independence: the two variables ARE associated. It does not tell you the direction or strength — compute Cramér's V and inspect the standardised residuals to see which cells drive the effect."]}
+  ],
+  refs:[
+    ["OpenStax – The Chi-Square Distribution","https://openstax.org/books/introductory-statistics/pages/11-introduction"],
+    ["Pearson (1900) original chi-square paper","https://www.tandfonline.com/doi/abs/10.1080/14786440009463897"]
+  ]
+}
+
+};
+// ============ PROFESSOR'S NOTES part 2 (topics 9–15) ============
+const TEACH2 = {
+
+"hypothesis":{
+  intuition:"Hypothesis testing is the courtroom of statistics. The null hypothesis is 'innocent until proven guilty'; the data are the evidence; the p-value is 'how surprising is this evidence if the accused were innocent?'. We never <i>prove</i> innocence — we either find enough evidence to convict (reject H₀) or we don't (fail to reject). That asymmetry is the whole philosophy.",
+  formal:[
+    ["The logic","Assume H₀. Compute a test statistic and its p-value = P(data this extreme or more | H₀ true). If p ≤ α, the data are too surprising under H₀, so we reject it."],
+    ["What p is NOT","p is not P(H₀ true), and (1−p) is not P(H₁ true). It is a statement about data given a hypothesis, not about a hypothesis given data — a Bayesian question that needs priors."],
+    ["One- vs two-tailed","Two-tailed tests a difference in either direction (μ ≠ μ₀); one-tailed tests a specific direction (μ > μ₀). Choose the tail <i>before</i> seeing the data."],
+    ["Confidence-interval duality","A two-sided α-level test rejects H₀: μ=μ₀ exactly when the (1−α) confidence interval excludes μ₀. Report the interval — it shows the effect size, not just a yes/no."]
+  ],
+  pitfalls:[
+    "p-hacking: trying many tests/subgroups and reporting the significant ones. This manufactures false positives; pre-register hypotheses.",
+    "Reading 'fail to reject' as 'H₀ is true'. Absence of evidence is not evidence of absence — the test may simply lack power.",
+    "Confusing statistical significance with practical importance. With huge n, trivial effects become significant; always report effect size and CI."
+  ],
+  exercises:[
+    {level:"Easy",q:"A two-tailed test returns p = 0.03 with α = 0.05. State the decision and interpret p in words.",
+     steps:["0.03 ≤ 0.05 → reject H₀.","p means: if H₀ were true, data this extreme would occur only 3% of the time.","That is surprising enough (below 5%) to doubt H₀."]},
+    {level:"Medium",q:"A drug trial (n=10) finds a promising mean improvement but p = 0.20. A journalist writes 'the drug does not work'. Why is that wrong?",
+     steps:["p = 0.20 means we failed to reject H₀, not that H₀ is true.","With only n=10 the test has low power; a real effect could be missed.","Correct statement: the trial was inconclusive; a larger study is needed."]},
+    {level:"Hard",q:"With n = 1,000,000 a difference of 0.1 points on a 100-point scale gives p < 0.001. Discuss significance vs importance and what to report.",
+     steps:["The p-value is tiny because huge n shrinks the standard error, detecting even trivial effects.","A 0.1-point difference is practically meaningless in most contexts.","Report the effect size and confidence interval, and judge importance on the scale of the problem — not on p alone."]}
+  ],
+  refs:[
+    ["Wasserstein & Lazar (2016) ASA Statement on p-values","https://www.tandfonline.com/doi/full/10.1080/00031305.2016.1154108"],
+    ["OpenStax – Hypothesis Testing","https://openstax.org/books/introductory-statistics/pages/9-introduction"]
+  ]
+},
+
+"type-errors":{
+  intuition:"Every test faces two ways to be wrong, and they trade off like a smoke detector's sensitivity. Set it too sensitive and it shrieks at toast (Type I, false alarm); set it too dull and it misses a real fire (Type II, missed detection). You cannot drive both to zero at once with fixed data — but a bigger sample lets you lower both. 'Power' is the detector's ability to catch a real fire.",
+  formal:[
+    ["The 2×2 of truth","Rows = decision (reject / not), columns = reality (H₀ true / false). α = P(reject | H₀ true) = Type I. β = P(fail to reject | H₀ false) = Type II. Power = 1 − β."],
+    ["What drives power","Power rises with (i) larger true effect size, (ii) larger n, (iii) smaller σ, and (iv) larger α. The four are linked — fix any three and the fourth is determined (power analysis)."],
+    ["Sample-size planning","To detect effect d with power 1−β at level α, solve for n. For a two-sided one-sample z: n ≈ ((z_{α/2}+z_β)/d)². This is done <i>before</i> collecting data."],
+    ["Multiple testing","Running m tests at α inflates the family-wise Type I rate to ≈ 1−(1−α)^m. Corrections: Bonferroni (α/m) or FDR control (Benjamini–Hochberg)."]
+  ],
+  pitfalls:[
+    "Chasing α → 0 to look rigorous; this quietly raises β and kills power to detect real effects.",
+    "Running an underpowered study, getting p > 0.05, and declaring 'no effect' — a classic Type II mistake.",
+    "Doing many comparisons without correction; some 'findings' are just the false-positive rate at work."
+  ],
+  exercises:[
+    {level:"Easy",q:"A pregnancy test says 'not pregnant' to a woman who is pregnant. Name the error and give its probability symbol.",
+     steps:["H₀ = 'not pregnant'; reality = pregnant (H₀ false).","Failing to reject a false H₀ → Type II error.","Its probability is β."]},
+    {level:"Medium",q:"A study has power 0.5 to detect a real effect. What does that mean practically, and how would you raise it?",
+     steps:["Even if the effect is real, the study has only a 50% chance of detecting it — a coin flip.","Half of such studies would wrongly conclude 'no effect'.","Raise power by increasing n, reducing measurement noise, or (if justified) using a larger α or one-tailed test."]},
+    {level:"Hard",q:"You will run 20 independent tests at α = 0.05 with all nulls true. Expected number of false positives? Give a correction.",
+     steps:["Expected false positives = 20 × 0.05 = 1.","P(at least one) = 1 − 0.95²⁰ ≈ 0.64 — very likely.","Bonferroni: test each at α/20 = 0.0025, or control the false discovery rate with Benjamini–Hochberg for more power."]}
+  ],
+  refs:[
+    ["Cohen (1988) Statistical Power Analysis","https://www.taylorfrancis.com/books/mono/10.4324/9780203771587/statistical-power-analysis-behavioral-sciences-jacob-cohen"],
+    ["Benjamini & Hochberg (1995) FDR","https://www.jstor.org/stable/2346101"]
+  ]
+},
+
+"correlation":{
+  intuition:"Correlation is a single number that captures 'do these two things rise and fall together?'. Picture a scatter of points: if they hug an upward line, r is near +1; a downward line, near −1; a shapeless blob, near 0. The classic warning — correlation is not causation — is the most important sentence in applied statistics: ice-cream sales and drownings correlate because summer drives both.",
+  formal:[
+    ["Pearson's r","r = Σ(xᵢ−x̄)(yᵢ−ȳ) / √[Σ(xᵢ−x̄)²·Σ(yᵢ−ȳ)²] = cov(x,y)/(s_x s_y). It measures <i>linear</i> association only, bounded in [−1, 1]."],
+    ["Coefficient of determination","r² is the share of variance in one variable linearly explained by the other, and equals the R² of the simple regression of y on x."],
+    ["Spearman & Kendall","For monotonic-but-curved or ordinal data, rank correlations (Spearman's ρ, Kendall's τ) replace Pearson and are robust to outliers."],
+    ["Inference","Test H₀: population ρ = 0 with t = r·√((n−2)/(1−r²)), df = n−2. Significance depends heavily on n."]
+  ],
+  pitfalls:[
+    "Reading causation into correlation. A lurking (confounding) variable or reverse causation may explain it — only a controlled design supports causal claims.",
+    "Trusting a low Pearson r as 'no relationship' — it may be strongly curved (e.g. U-shaped) with r ≈ 0. Always plot.",
+    "Anscombe's quartet: four datasets with identical r yet wildly different shapes. Never summarise a relationship by r alone."
+  ],
+  exercises:[
+    {level:"Easy",q:"A scatter of hours vs score hugs a rising straight line. Estimate the sign of r and what r² near 0.9 would mean.",
+     steps:["Rising line → positive r, close to +1.","r² ≈ 0.9 means ~90% of the variation in score is linearly explained by hours.","Strong linear association — but still not proof that hours cause the score."]},
+    {level:"Medium",q:"Country data shows chocolate consumption correlates with Nobel prizes (r ≈ 0.79). Give two non-causal explanations.",
+     steps:["Confounding: national wealth raises both chocolate spending and research funding.","It is an ecological correlation (countries, not people) — it need not hold for individuals.","Conclusion: a strong r here does not mean chocolate causes Nobels."]},
+    {level:"Hard",q:"Data follow y = x² for x in [−3, 3]. Explain why Pearson r ≈ 0 despite a perfect relationship, and what to use instead.",
+     steps:["The relationship is symmetric: rising for x>0, falling for x<0, so linear covariance cancels to ~0.","Pearson only detects <i>linear</i> association, so r ≈ 0 here.","Use a non-linear model, or a correlation on a transformed variable (e.g. correlate y with x²), or measures like distance correlation."]}
+  ],
+  refs:[
+    ["Anscombe (1973) 'Graphs in Statistical Analysis'","https://www.tandfonline.com/doi/abs/10.1080/00031305.1973.10478966"],
+    ["OpenStax – Correlation and Regression","https://openstax.org/books/introductory-statistics/pages/12-introduction"]
+  ]
+},
+
+"regression":{
+  intuition:"If correlation says 'these move together', regression draws the <b>best line</b> through the cloud so you can predict one from the other and read off 'how much y changes per unit x'. The line is chosen to make the total (squared) miss as small as possible. It is the workhorse of forecasting, economics, and machine learning's simplest model.",
+  formal:[
+    ["The model","yᵢ = β₀ + β₁xᵢ + εᵢ, with errors εᵢ assumed independent, mean-zero, constant-variance (homoscedastic), and (for inference) normal."],
+    ["Least-squares estimates","β̂₁ = Σ(xᵢ−x̄)(yᵢ−ȳ)/Σ(xᵢ−x̄)² = r·(s_y/s_x); β̂₀ = ȳ − β̂₁x̄. These minimise Σ(yᵢ−ŷᵢ)²."],
+    ["Fit & inference","R² = 1 − SS_res/SS_tot is the variance explained. Each coefficient has a standard error, giving a t-test (H₀: β=0) and a confidence interval."],
+    ["Diagnostics","Check residuals: a plot vs fitted should be a patternless band. Curvature → wrong functional form; a funnel → heteroscedasticity; outliers/leverage → influential points (Cook's distance)."]
+  ],
+  pitfalls:[
+    "Extrapolating beyond the data range — the linear pattern may not hold there.",
+    "Ignoring residual diagnostics; a high R² can still hide curvature or heteroscedasticity that invalidate the standard errors.",
+    "Interpreting β₀ (intercept) when x = 0 is outside the data or physically meaningless."
+  ],
+  exercises:[
+    {level:"Easy",q:"Given r = 0.6, s_y = 8, s_x = 4, find the slope β̂₁ and interpret it.",
+     steps:["β̂₁ = r·(s_y/s_x) = 0.6×(8/4) = 1.2.","Each 1-unit rise in x is associated with a 1.2-unit rise in predicted y."]},
+    {level:"Medium",q:"A regression of house price on size gives R²=0.55. A colleague says 'size determines 55% of a house's price'. Correct the wording.",
+     steps:["R² is the share of price <i>variance</i> linearly explained by size, not a share of the price level.","And 'explained' is statistical, not causal.","Better: 'size accounts for about 55% of the variation in prices in this sample; other factors explain the rest.'"]},
+    {level:"Hard",q:"Residuals vs fitted show a clear U-shape. What assumption is violated, what does it invalidate, and how do you fix it?",
+     steps:["A U-shape means the true relationship is non-linear — the linearity assumption fails.","The slope, R², and its p-values are then misleading.","Fix by adding a quadratic term (x²), transforming a variable (log), or fitting a non-linear model; re-check residuals afterward."]}
+  ],
+  refs:[
+    ["OpenStax – The Regression Equation","https://openstax.org/books/introductory-statistics/pages/12-3-the-regression-equation"],
+    ["Gelman & Hill – Regression and Multilevel Models","http://www.stat.columbia.edu/~gelman/arm/"]
+  ]
+},
+
+"nonlinear":{
+  intuition:"Nature is rarely a straight line. Populations explode (exponential), skills plateau (logarithmic), projectiles arc (quadratic), epidemics S-curve (logistic). Non-linear regression fits these shapes. The professional's first move is always the same: <b>plot the data</b>, recognise the shape, then choose the simplest curve that captures it — resisting the temptation to overfit with a wiggly high-degree polynomial.",
+  formal:[
+    ["Model families","Polynomial y = β₀+β₁x+β₂x²+…; exponential y = a·e^{bx}; power y = a·x^b; logarithmic y = a+b·ln x; logistic y = L/(1+e^{−k(x−x₀)})."],
+    ["Linearisation","Many curves become linear after a transform: ln both sides of y=a·e^{bx} gives ln y = ln a + b x, fittable by OLS. Power laws linearise in log–log."],
+    ["Genuine non-linear fitting","When no transform linearises the model, use iterative least squares (Gauss–Newton / Levenberg–Marquardt) with starting values, as in scipy's curve_fit."],
+    ["Model selection","Compare candidate curves by adjusted R², AIC/BIC, and — crucially — out-of-sample error. The bias–variance trade-off warns that more flexibility fits training data better but generalises worse."]
+  ],
+  pitfalls:[
+    "Overfitting with a high-degree polynomial: it threads every point yet oscillates wildly between them and forecasts poorly.",
+    "Fitting an exponential to data that is actually logistic — the exponential predicts unbounded growth where reality saturates.",
+    "Comparing R² across transformed and untransformed models directly; the scales differ, so compare on the same scale or use information criteria."
+  ],
+  exercises:[
+    {level:"Easy",q:"A quantity doubles every hour from 50. Write the model and the amount after 4 hours.",
+     steps:["Exponential: N = 50·2^t.","After 4 h: 50×2⁴ = 50×16 = 800."]},
+    {level:"Medium",q:"Data on (x, y) becomes a straight line when you plot ln(y) against x. What model does this imply, and how do you recover its constants?",
+     steps:["A straight line in ln(y) vs x implies y = a·e^{bx}.","Fit ln(y) = ln a + b·x by OLS.","Recover a = e^{intercept}, b = slope."]},
+    {level:"Hard",q:"Epidemic cases grow exponentially at first but then level off near a ceiling. Which model beats an exponential, and why does the exponential fail late?",
+     steps:["A logistic curve y = L/(1+e^{−k(x−x₀)}) fits growth that saturates at capacity L.","Early on it looks exponential, so both fit the start.","The exponential has no ceiling and predicts infinite growth, badly overshooting once the epidemic slows — the logistic captures the plateau."]}
+  ],
+  refs:[
+    ["NIST – Nonlinear Least Squares","https://www.itl.nist.gov/div898/handbook/pmd/section1/pmd142.htm"],
+    ["James et al. – An Introduction to Statistical Learning","https://www.statlearning.com/"]
+  ]
+},
+
+"multilinear":{
+  intuition:"Real outcomes have many causes at once. A salary depends on education, experience, and location together. Multiple regression untangles them, estimating each factor's effect <b>while holding the others fixed</b> — the statistical version of 'all else equal'. This 'controlling for' power is why it is the backbone of empirical economics and the social sciences.",
+  formal:[
+    ["Matrix form","y = Xβ + ε, where X is the n×(k+1) design matrix (a column of 1s plus predictors). The OLS solution is β̂ = (XᵀX)⁻¹Xᵀy."],
+    ["Interpreting coefficients","βⱼ is the expected change in y per unit increase in xⱼ, holding all other predictors constant — the ceteris paribus effect."],
+    ["Adjusted R² & selection","Plain R² never falls when predictors are added, so use adjusted R² = 1 − (1−R²)(n−1)/(n−k−1), or AIC/BIC, to judge whether a predictor earns its place."],
+    ["Diagnostics","Multicollinearity (VIF > 5–10) inflates coefficient variance; check residuals for the usual linear-model assumptions; watch influential points."]
+  ],
+  pitfalls:[
+    "Multicollinearity: strongly correlated predictors give unstable, hard-to-interpret coefficients (even wrong signs). Detect with VIF; drop, combine, or regularise.",
+    "Omitted-variable bias: leaving out a relevant predictor that correlates with an included one biases the included coefficient.",
+    "Interpreting coefficients causally from observational data — 'controlling for' is not the same as a randomised experiment."
+  ],
+  exercises:[
+    {level:"Easy",q:"In ŷ = 30 + 2·exp + 5·edu (years), interpret the coefficient on education.",
+     steps:["Each additional year of education is associated with a 5-unit rise in predicted y…","…holding experience constant (ceteris paribus)."]},
+    {level:"Medium",q:"Adding a third predictor raises R² from 0.60 to 0.61 but adjusted R² falls. What does that tell you?",
+     steps:["Plain R² always rises when predictors are added, so the 0.01 gain is expected.","Adjusted R² falling means the new predictor did not improve fit beyond what chance predicts.","Conclusion: the predictor is not worth keeping."]},
+    {level:"Hard",q:"Two predictors correlate at r = 0.97. What problem arises, how do you detect it, and give two remedies.",
+     steps:["Severe multicollinearity: the model cannot separate their individual effects, so coefficients become unstable with huge standard errors.","Detect with the variance inflation factor (VIF); values ≫ 10 confirm it.","Remedies: drop one predictor, combine them into an index, or use regularisation (ridge regression)."]}
+  ],
+  refs:[
+    ["Penn State STAT 501 – Multiple Regression","https://online.stat.psu.edu/stat501/"],
+    ["Wooldridge – Introductory Econometrics","https://www.cengage.com/c/introductory-econometrics-a-modern-approach-7e-wooldridge/"]
+  ]
+},
+
+"timeseries":{
+  intuition:"Ordinary statistics assumes observations are independent — but yesterday's temperature clearly informs today's. Time-series analysis embraces that dependence. Picture sales over time as three layers stacked: a slow <b>trend</b>, a repeating <b>seasonal</b> wave, and random <b>noise</b>. Separate the layers and you can both understand the past and forecast the future.",
+  formal:[
+    ["Decomposition","Additive: Yₜ = Tₜ + Sₜ + eₜ; multiplicative: Yₜ = Tₜ·Sₜ·eₜ (use when seasonal swings grow with the level). Classical or STL decomposition estimates each part."],
+    ["Stationarity","Many models require a stationary series (constant mean, variance, autocovariance). Trends and seasonality break it; differencing (Yₜ − Yₜ₋₁) and seasonal differencing restore it. Test with ADF/KPSS."],
+    ["ARIMA(p,d,q)","AR(p): regress on p past values; I(d): d differences to reach stationarity; MA(q): regress on q past errors. SARIMA adds seasonal terms. Identify p,q from ACF/PACF plots."],
+    ["Forecast validation","Never shuffle time. Use a rolling/expanding time-based split, and evaluate with MAE, RMSE, or MAPE on the held-out future."]
+  ],
+  pitfalls:[
+    "Random train/test splitting of time series — it leaks future information into the past and inflates accuracy. Always split by time.",
+    "Applying methods that assume independence (e.g. an ordinary t-test on autocorrelated data) — standard errors will be wrong.",
+    "Forecasting far ahead from a short series and trusting narrow intervals; uncertainty grows with the horizon."
+  ],
+  exercises:[
+    {level:"Easy",q:"Monthly ice-cream sales peak every July. Name the component and the model type if peaks grow larger each year.",
+     steps:["The regular yearly peak is seasonality.","If the seasonal swing grows with the overall level, use a multiplicative model (Yₜ = Tₜ·Sₜ·eₜ)."]},
+    {level:"Medium",q:"A series has a clear upward trend. Why is it non-stationary, and what simple transform helps?",
+     steps:["A trend means the mean changes over time, violating constant-mean stationarity.","First differencing (Yₜ − Yₜ₋₁) removes a linear trend, stabilising the mean.","Check stationarity afterward with an ADF test."]},
+    {level:"Hard",q:"You must forecast next quarter's demand for 5,000 products. Outline an approach that scales and validates honestly.",
+     steps:["Resample to the needed frequency; group by product and fit a model per series (or a global model like Prophet/GluonTS for many series).","Choose SARIMA/Holt-Winters/Prophet based on trend + seasonality present.","Validate with a time-based backtest (train on the past, test on recent quarters) using MAPE, and widen intervals for longer horizons."]}
+  ],
+  refs:[
+    ["Hyndman & Athanasopoulos – Forecasting: Principles and Practice (free)","https://otexts.com/fpp3/"],
+    ["Box & Jenkins – Time Series Analysis","https://onlinelibrary.wiley.com/doi/book/10.1002/9781118619193"]
+  ]
+}
+};
+
+// merge the two halves
+Object.assign(TEACH, TEACH2);
+// ==================== JOKES (100) ====================
+const JOKE_SEEDS = [
+"Statistically, 6 out of 7 dwarfs are not Happy.",
+"I'm 95% confident this joke is significant.",
+"Old statisticians never die — they just get broken down by age and sex.",
+"A statistician's spouse says: 'On average, you're a great partner.'",
+"Two statisticians go hunting. One shoots left, one right, both miss. 'Got it!' they cry.",
+"I only tell binomial jokes — you either get them or you don't.",
+"The mode of my mood is 'mildly amused.'",
+"My p-value is low, but my self-esteem is lower.",
+"Why did the statistician drown? The average depth was only 3 feet.",
+"Correlation isn't causation, but it does waggle its eyebrows suggestively.",
+"I put the 'stat' in 'catastrophe.'",
+"A normal distribution walks into a bar. Everyone stands 2σ away.",
+"My data are skewed, but my humour is normal.",
+"Regression to the mean: my jokes started great and now they're average.",
+"I'm not outlying, I'm just three standard deviations ahead.",
+"Null hypothesis: nobody laughs. I keep failing to reject it.",
+"Statisticians do it with confidence — 95% of the time.",
+"The variance of my income is higher than its mean.",
+"I told a chi-square joke; the observed laughs didn't match the expected.",
+"Bayesians never really change their mind — they just update it.",
+"A random variable walked in. I couldn't predict what it would do.",
+"My love life is a time series with a strong downward trend.",
+"I have a mean streak — plus a median and a mode.",
+"Standard error: to be human. Standard deviation: to be a statistician.",
+"The t-distribution has heavier tails and so does my dog.",
+"I fit a line to my life. The residuals are enormous.",
+"Sampling without replacement is why I have no cookies left.",
+"My confidence interval for happiness includes zero.",
+"ANOVA walk into a bar; the variance between them was significant.",
+"I'm positively skewed toward bad puns.",
+"A frequentist and a Bayesian argue forever. The prior odds were 50/50.",
+"The median is just the mean with better manners.",
+"Outliers get all the attention; the interquartile crowd stays humble.",
+"My heart rejects the null every time you're near.",
+"I'd tell you a Poisson joke but the timing is random.",
+"Degrees of freedom: what you lose the moment you estimate a parameter.",
+"Life is a Markov chain — the past doesn't matter, only where you are now.",
+"I ran a regression on my feelings; the intercept was despair.",
+"Never trust an atom of a statistic — they make up everything.",
+"I'm significant at the 0.05 level, thank you very much.",
+"The average human has one breast and one testicle.",
+"My data cleaning takes 80% of the time and 100% of my soul.",
+"Type I error: crying wolf. Type II error: ignoring the actual wolf.",
+"The bell curve peaked. So did my career.",
+"Histograms are just bar charts that went to therapy.",
+"I'd explain the central limit theorem, but you had to sample there.",
+"My variance explained is low, but my effort is high.",
+"Statisticians prefer their jokes independent and identically distributed.",
+"I asked the data to speak; it just gave me a p-value.",
+"A boxplot is a data's way of showing where it hides its outliers."
+];
+function buildJokes(){
+  const out = JOKE_SEEDS.slice();
+  const extra = [
+    "the mean","the median","the mode","the variance","the p-value",
+    "the null hypothesis","the confidence interval","the regression line",
+    "the standard deviation","the correlation","the sample size","the outlier",
+    "the bell curve","the t-test","the chi-square","the residual",
+    "the random variable","the trend line","the error term","the histogram"
+  ];
+  const templates = [
+    a=>`Why did ${a} go to therapy? It couldn't handle the rejection region.`,
+    a=>`${a.charAt(0).toUpperCase()+a.slice(1)} walked into a bar and immediately dropped the p-value.`,
+    a=>`I asked ${a} out. It said the result was not statistically significant.`,
+    a=>`${a.charAt(0).toUpperCase()+a.slice(1)} and I broke up — too much unexplained variance.`,
+    a=>`My professor loves ${a}. It's the only thing that never fails to reject.`
+  ];
+  let i = 0;
+  while(out.length < 100){
+    const a = extra[i % extra.length];
+    const t = templates[Math.floor(i / extra.length) % templates.length];
+    out.push(t(a));
+    i++;
+  }
+  return out.slice(0,100);
+}
+const JOKES = buildJokes();
+
+// ==================== NAV & ROUTING ====================
+let chartInstance = null;
+function destroyChart(){ if(chartInstance){chartInstance.destroy();chartInstance=null;} }
+
+function buildNav(){
+  document.getElementById("nav").innerHTML =
+    LESSONS.map((l,i)=>`<a onclick="showLesson(${i})" data-i="${i}">${l.title}</a>`).join("");
+}
+function setActive(i){
+  document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("active", a.dataset.i==i));
+}
+function showHome(){
+  destroyChart(); setActive(-1); window.scrollTo(0,0);
+  document.getElementById("content").innerHTML = `
+    <div class="hero">
+      <h1>Master Stats Lab</h1>
+      <p class="byline">by Dr. Ngoun Sethykun</p>
+      <p>18 topics — from variables to regression, plus a mega quiz, 100 jokes,
+         and a decision tree of tests. Pick a topic from the left to begin.</p>
+    </div>
+    <div class="card-grid">
+      ${LESSONS.map((l,i)=>`
+        <div class="lesson-card" onclick="showLesson(${i})">
+          <h2>${l.title}</h2><p>${l.summary}</p><span class="go">Open →</span>
+        </div>`).join("")}
+    </div>`;
+}
+
+// ==================== LESSON RENDER ====================
+function showLesson(i){
+  destroyChart(); setActive(i); window.scrollTo(0,0);
+  const l = LESSONS[i];
+  if(l.kind==="jokes")  return renderJokes(l);
+  if(l.kind==="tree")   return renderTree(l);
+  if(l.kind==="megaquiz") return renderMegaQuiz(l);
+  renderStandard(l, i);
+}
+
+function refsHTML(l, extraRefs){
+  let refs = (l.references||[]).slice();
+  if(extraRefs && extraRefs.length){
+    extraRefs.forEach(r=>{ if(!refs.some(x=>x[1]===r[1])) refs.push(r); });
+  }
+  if(!refs.length) return "";
+  return `<section class="block"><h2>🔗 References &amp; Further Reading</h2><ul class="refs">
+    ${refs.map(r=>`<li><a href="${r[1]}" target="_blank" rel="noopener">${r[0]}</a></li>`).join("")}
+    </ul></section>`;
+}
+function navHTML(i){
+  const prev = i>0?LESSONS[i-1]:null, next = i<LESSONS.length-1?LESSONS[i+1]:null;
+  return `<div class="lesson-nav">
+    ${prev?`<button class="btn ghost" onclick="showLesson(${i-1})">← ${prev.title}</button>`:"<span></span>"}
+    ${next?`<button class="btn" onclick="showLesson(${i+1})">${next.title} →</button>`:""}
+  </div>`;
+}
+
+function escapeHTML(s){return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function deepDiveHTML(slug){
+  const d = DEEPDIVE[slug];
+  const t = d.table;
+  const tableHTML = `
+    <p class="dd-caption">${t.caption}</p>
+    <div class="dd-table-wrap"><table class="dd-table">
+      <thead><tr>${t.headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
+      <tbody>${t.rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join("")}</tr>`).join("")}</tbody>
+    </table></div>`;
+  const steps = arr => `<ol class="steps">${arr.map(s=>`<li>${s}</li>`).join("")}</ol>`;
+  return `
+    <section class="block dd">
+      <h2>🔬 Deep Dive — how to actually do it</h2>
+      <p class="note">${d.intro}</p>
+      ${tableHTML}
+      <div class="dd-tabs">
+        <button class="dd-tab active" onclick="ddTab(this,'${slug}','hand')">✍️ By hand</button>
+        <button class="dd-tab" onclick="ddTab(this,'${slug}','excel')">📊 Excel</button>
+        <button class="dd-tab" onclick="ddTab(this,'${slug}','python')">🐍 Python</button>
+        <button class="dd-tab" onclick="ddTab(this,'${slug}','big')">🗄️ Big data</button>
+        <button class="dd-tab" onclick="ddTab(this,'${slug}','ai')">🤖 AI prompt</button>
+        <button class="dd-tab" onclick="ddTab(this,'${slug}','stata')">📈 Stata</button>
+        <button class="dd-tab" onclick="ddTab(this,'${slug}','eviews')">📉 EViews</button>
+      </div>
+      <div id="dd-hand-${slug}" class="dd-panel">${steps(d.byhand)}</div>
+      <div id="dd-excel-${slug}" class="dd-panel hidden">${steps(d.excel)}</div>
+      <div id="dd-python-${slug}" class="dd-panel hidden"><pre class="code-block"><code>${escapeHTML(d.python)}</code></pre></div>
+      <div id="dd-big-${slug}" class="dd-panel hidden">${steps(d.bigdata)}</div>
+      <div id="dd-ai-${slug}" class="dd-panel hidden">
+        <p class="note">Copy this into ChatGPT, Claude, or any AI assistant (paste your data with it) to run the analysis:</p>
+        <div class="ai-box">
+          <button class="btn ghost copy-btn" onclick="copyAI('${slug}',this)">📋 Copy prompt</button>
+          <pre class="prompt-block" id="ai-text-${slug}">${escapeHTML(d.aiprompt)}</pre>
+        </div>
+      </div>
+      <div id="dd-stata-${slug}" class="dd-panel hidden"><pre class="code-block"><code>${escapeHTML(d.stata)}</code></pre></div>
+      <div id="dd-eviews-${slug}" class="dd-panel hidden"><pre class="code-block"><code>${escapeHTML(d.eviews)}</code></pre></div>
+      <div class="dd-interpret"><b>How to read the result:</b> ${d.interpret}</div>
+    </section>`;
+}
+function ddTab(btn, slug, which){
+  btn.parentElement.querySelectorAll(".dd-tab").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active");
+  ["hand","excel","python","big","ai","stata","eviews"].forEach(k=>{
+    const el=document.getElementById(`dd-${k}-${slug}`);
+    if(el) el.classList.toggle("hidden", k!==which);
+  });
+}
+function copyAI(slug, btn){
+  const txt = document.getElementById(`ai-text-${slug}`).textContent;
+  const done = ()=>{ btn.textContent="✅ Copied!"; setTimeout(()=>btn.textContent="📋 Copy prompt",1500); };
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(done).catch(()=>fallbackCopy(txt,done));
+  } else { fallbackCopy(txt,done); }
+}
+function fallbackCopy(txt, done){
+  const ta=document.createElement("textarea");
+  ta.value=txt; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); done(); }catch(e){}
+  document.body.removeChild(ta);
+}
+
+function renderStandard(l, i){
+  document.getElementById("content").innerHTML = `
+    <h1 class="lesson-title">${l.title}</h1>
+    <p class="lesson-summary">${l.summary}</p>
+    ${l.brief?`<div class="brief"><span class="brief-tag">Why &amp; When</span><p>${l.brief}</p></div>`:""}
+    <section class="block"><h2>📖 Theory</h2>
+      ${l.theory.map(t=>`<div class="theory-item"><h3>${t[0]}</h3><p>${t[1]}</p></div>`).join("")}
+    </section>
+    ${TEACH[l.slug]?teachHTML(l.slug):""}
+    ${l.graph?`<section class="block"><h2>📈 Interactive Graph</h2>
+      <div class="chart-wrap"><canvas id="chart"></canvas></div>
+      <p id="chart-note" class="note"></p></section>`:""}
+    <section class="block"><h2>✏️ Worked Example</h2>
+      <p class="problem"><b>Problem:</b> ${l.example.problem}</p>
+      <ol class="steps">${l.example.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+    </section>
+    ${l.practice&&l.practice.length?`<section class="block"><h2>💪 Practice Exercises</h2>
+      <p class="note">Try each one yourself, then click to reveal the worked solution.</p>
+      ${l.practice.map((p,pi)=>`
+        <div class="practice-item">
+          <p class="problem" style="margin-bottom:0"><b>Exercise ${pi+1}:</b> ${p.problem}</p>
+          <button class="btn ghost sol-btn" onclick="toggleSol(this)">Show solution</button>
+          <ol class="steps sol hidden">${p.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+        </div>`).join("")}
+    </section>`:""}
+    ${TEACH[l.slug]&&TEACH[l.slug].exercises?teachExercisesHTML(l.slug):""}
+    ${DEEPDIVE[l.slug]?deepDiveHTML(l.slug):""}
+    <section class="block"><h2>🧠 Practice Quiz</h2>
+      <div id="quiz">${quizItemsHTML(l.quiz)}</div>
+      <button class="btn" onclick="checkQuiz()">Check Answers</button>
+      <p id="score" class="score"></p>
+    </section>
+    ${refsHTML(l, TEACH[l.slug]?TEACH[l.slug].refs:null)}
+    ${navHTML(i)}`;
+  if(l.graph) drawChart(l.graph);
+}
+
+function teachHTML(slug){
+  const t = TEACH[slug];
+  const formal = t.formal.map(f=>`<div class="theory-item"><h3>${f[0]}</h3><p>${f[1]}</p></div>`).join("");
+  const pit = t.pitfalls.map(p=>`<li>${p}</li>`).join("");
+  return `
+    <section class="block prof">
+      <h2>🎓 Professor's Notes</h2>
+      <div class="prof-intuition"><span class="prof-tag">Intuition</span><p>${t.intuition}</p></div>
+      <h3 class="prof-sub">The formal picture</h3>
+      ${formal}
+      <div class="pitfalls"><h3 class="prof-sub">⚠️ Common mistakes to avoid</h3>
+        <ul class="pitfall-list">${pit}</ul></div>
+    </section>`;
+}
+
+function teachExercisesHTML(slug){
+  const ex = TEACH[slug].exercises;
+  const badge = lv => `<span class="lvl lvl-${lv.toLowerCase()}">${lv}</span>`;
+  return `
+    <section class="block"><h2>🧩 Graded Exercises (with full solutions)</h2>
+      <p class="note">These build from easy to hard. Attempt each before revealing the solution.</p>
+      ${ex.map((e,ei)=>`
+        <div class="practice-item">
+          <p class="problem" style="margin-bottom:0">${badge(e.level)} <b>Exercise ${ei+1}:</b> ${e.q}</p>
+          <button class="btn ghost sol-btn" onclick="toggleSol(this)">Show solution</button>
+          <ol class="steps sol hidden">${e.steps.map(s=>`<li>${s}</li>`).join("")}</ol>
+        </div>`).join("")}
+    </section>`;
+}
+function toggleSol(btn){
+  const sol = btn.nextElementSibling;
+  const open = !sol.classList.contains("hidden");
+  sol.classList.toggle("hidden");
+  btn.textContent = open ? "Show solution" : "Hide solution";
+}
+
+function quizItemsHTML(quiz){
+  return quiz.map((it,qi)=>`
+    <div class="quiz-item" data-answer="${it.answer}">
+      <p class="q"><b>Q${qi+1}.</b> ${it.q}</p>
+      ${it.options.map((o,oi)=>`<label class="opt">
+        <input type="radio" name="q${qi}" value="${oi}"><span>${o}</span></label>`).join("")}
+      <p class="feedback"></p>
+    </div>`).join("");
+}
+function checkQuiz(){
+  const items = document.querySelectorAll(".quiz-item");
+  let correct=0;
+  items.forEach(item=>{
+    const ans=parseInt(item.dataset.answer,10);
+    const chosen=item.querySelector("input:checked");
+    const fb=item.querySelector(".feedback");
+    if(!chosen){fb.textContent="⚠️ Please select an answer.";fb.className="feedback warn";return;}
+    if(parseInt(chosen.value,10)===ans){fb.textContent="✅ Correct!";fb.className="feedback ok";correct++;}
+    else{fb.textContent="❌ Not quite — review the theory above.";fb.className="feedback bad";}
+  });
+  const s=document.getElementById("score");
+  s.textContent=`You scored ${correct} / ${items.length}`;
+  s.className="score "+(correct===items.length?"ok":"");
+}
+
+// ==================== MEGA QUIZ ====================
+function renderMegaQuiz(l){
+  const i = LESSONS.indexOf(l);
+  document.getElementById("content").innerHTML = `
+    <h1 class="lesson-title">${l.title}</h1>
+    <p class="lesson-summary">${l.summary}</p>
+    <section class="block">
+      <div id="quiz">${quizItemsHTML(l.quiz)}</div>
+      <button class="btn" onclick="checkQuiz()">Check Answers</button>
+      <p id="score" class="score"></p>
+    </section>
+    ${navHTML(i)}`;
+}
+
+// ==================== JOKES ====================
+function renderJokes(l){
+  const i = LESSONS.indexOf(l);
+  document.getElementById("content").innerHTML = `
+    <h1 class="lesson-title">${l.title}</h1>
+    <p class="lesson-summary">${l.summary}</p>
+    <section class="block">
+      <button class="btn" onclick="randomJoke()">🎲 Random joke</button>
+      <p id="rand-joke" class="problem" style="margin-top:14px"></p>
+      <ol class="jokes-list">${JOKES.map(j=>`<li>${j}</li>`).join("")}</ol>
+    </section>
+    ${navHTML(i)}`;
+  randomJoke();
+}
+function randomJoke(){
+  const el=document.getElementById("rand-joke");
+  if(el) el.textContent = "😄 " + JOKES[Math.floor(Math.random()*JOKES.length)];
+}
+
+// ==================== TREE OF LIFE (decision map) ====================
+const TREE = {
+  q:"What kind of outcome are you analysing?",
+  options:[
+    {label:"Categorical (counts / labels)", node:{
+      q:"How many categorical variables?",
+      options:[
+        {label:"One — vs an expected distribution", leaf:"Chi-Square Goodness of Fit"},
+        {label:"Two — are they related?", leaf:"Chi-Square Test of Independence"}
+      ]}},
+    {label:"Numeric — comparing means", node:{
+      q:"How many groups?",
+      options:[
+        {label:"One group vs a known value", leaf:"One-Sample t-Test (or Z-Test if σ known)"},
+        {label:"Two groups", node:{
+          q:"Are the two groups paired?",
+          options:[
+            {label:"Paired (same subjects)", leaf:"Paired t-Test"},
+            {label:"Independent groups", leaf:"Independent Two-Sample t-Test"}
+          ]}},
+        {label:"Three or more groups", leaf:"ANOVA (F-Test)"}
+      ]}},
+    {label:"Numeric — relationship between variables", node:{
+      q:"What do you want to know?",
+      options:[
+        {label:"Strength/direction of association", leaf:"Correlation (Pearson / Spearman)"},
+        {label:"Predict y from one x", leaf:"Simple Linear Regression"},
+        {label:"Predict y from several x", leaf:"Multiple Linear Regression"},
+        {label:"The relationship is curved", leaf:"Non-Linear Regression"}
+      ]}},
+    {label:"Data ordered over time", leaf:"Time Series Analysis (trend / seasonality / ARIMA)"}
+  ]
+};
+let treePath = [];
+function renderTree(l){
+  const i = LESSONS.indexOf(l);
+  document.getElementById("content").innerHTML = `
+    <h1 class="lesson-title">${l.title}</h1>
+    <p class="lesson-summary">${l.summary}</p>
+    <section class="block">
+      <p class="note">Answer the questions to find the right statistical test.</p>
+      <div id="tree-box"></div>
+      <button class="btn ghost" style="margin-top:14px" onclick="resetTree()">↺ Start over</button>
+    </section>
+    ${refsHTML(l)}
+    ${navHTML(i)}`;
+  treePath=[]; drawTreeNode(TREE);
+}
+function drawTreeNode(node){
+  const box=document.getElementById("tree-box");
+  const crumbs = treePath.length? `<p class="tree-crumbs">${treePath.join(" → ")}</p>`:"";
+  box.innerHTML = crumbs + `<div class="tree-q">${node.q}</div>` +
+    `<div class="tree-opts">` +
+    node.options.map((o,idx)=>`<button class="btn tree-opt" data-idx="${idx}">${o.label}</button>`).join("") +
+    `</div>`;
+  box.querySelectorAll(".tree-opt").forEach(btn=>{
+    btn.onclick=()=>{
+      const o=node.options[parseInt(btn.dataset.idx,10)];
+      treePath.push(o.label);
+      if(o.leaf) drawTreeLeaf(o.leaf);
+      else drawTreeNode(o.node);
+    };
+  });
+}
+function drawTreeLeaf(answer){
+  const box=document.getElementById("tree-box");
+  box.innerHTML = `<p class="tree-crumbs">${treePath.join(" → ")}</p>
+    <div class="tree-leaf">✅ Recommended test:<br><span>${answer}</span></div>`;
+}
+function resetTree(){ treePath=[]; drawTreeNode(TREE); }
+
+// ==================== CHARTS ====================
+function drawChart(type){
+  const ctx=document.getElementById("chart").getContext("2d");
+  const note=document.getElementById("chart-note");
+  const A="#4f46e5";
+  const nPDF=(x,m,s)=>Math.exp(-((x-m)**2)/(2*s*s))/(s*Math.sqrt(2*Math.PI));
+  const noLegend={plugins:{legend:{display:false}}};
+  const line=(xt,yt)=>({scales:{x:{type:"linear",title:{display:true,text:xt}},y:{title:{display:true,text:yt}}},plugins:{legend:{display:false}}});
+
+  if(type==="variables"){
+    chartInstance=new Chart(ctx,{type:"doughnut",
+      data:{labels:["Nominal","Ordinal","Interval","Ratio"],
+        datasets:[{data:[25,25,25,25],backgroundColor:["#94a3b8","#60a5fa","#4f46e5","#22c55e"]}]},
+      options:{plugins:{legend:{position:"bottom"}}}});
+    note.textContent="The four levels of measurement, from labels (nominal) up to true-zero scales (ratio).";
+  }
+  else if(type==="descriptive"){
+    const d=[2,3,4,5,6,8,8];
+    chartInstance=new Chart(ctx,{type:"bar",
+      data:{labels:d.map((_,i)=>"x"+(i+1)),datasets:[{data:d,backgroundColor:A}]},
+      options:{...noLegend,scales:{y:{beginAtZero:true}}}});
+    note.textContent="Sample values. Mean ≈ 5.14, median = 5, mode = 8, SD ≈ 2.27.";
+  }
+  else if(type==="outliers"){
+    const d=[10,12,12,13,14,15,40];
+    chartInstance=new Chart(ctx,{type:"bar",
+      data:{labels:d.map((v,i)=>i+1),datasets:[{data:d,
+        backgroundColor:d.map(v=>v>19.5?"#ef4444":A)}]},
+      options:{...noLegend,scales:{y:{beginAtZero:true}}}});
+    note.textContent="Red bar (40) lies beyond the upper fence Q3+1.5×IQR = 19.5 — an outlier.";
+  }
+  else if(type==="normal"){
+    const pts=[];for(let x=-4;x<=4;x+=0.1)pts.push({x,y:nPDF(x,0,1)});
+    chartInstance=new Chart(ctx,{type:"line",
+      data:{datasets:[{data:pts,borderColor:A,tension:.4,pointRadius:0,fill:true,backgroundColor:"rgba(79,70,229,.12)"}]},
+      options:line("z-score (σ from mean)","density")});
+    note.textContent="Bell curve: 68% within ±1σ, 95% within ±2σ, 99.7% within ±3σ.";
+  }
+  else if(type==="ttest"){
+    const t=[],z=[];
+    for(let x=-4;x<=4;x+=0.1){z.push({x,y:nPDF(x,0,1)});
+      const df=3,c=0.368;t.push({x,y:c*Math.pow(1+x*x/df,-(df+1)/2)});}
+    chartInstance=new Chart(ctx,{type:"line",
+      data:{datasets:[
+        {label:"Normal (z)",data:z,borderColor:"#94a3b8",pointRadius:0,tension:.4},
+        {label:"t (df=3)",data:t,borderColor:A,pointRadius:0,tension:.4}]},
+      options:{scales:{x:{type:"linear"}},plugins:{legend:{position:"bottom"}}}});
+    note.textContent="The t-distribution (blue) has heavier tails than the normal (grey); they converge as df grows.";
+  }
+  else if(type==="ztest"){
+    const pts=[];for(let x=-4;x<=4;x+=0.1)pts.push({x,y:nPDF(x,0,1)});
+    chartInstance=new Chart(ctx,{type:"line",
+      data:{datasets:[{data:pts,borderColor:A,tension:.4,pointRadius:0,fill:true,
+        backgroundColor:(c)=>0,segment:{}}]},
+      options:line("z","density")});
+    note.textContent="Standard normal. Two-tailed rejection regions lie beyond ±1.96 at α = 0.05.";
+  }
+  else if(type==="ftest"){
+    const pts=[];for(let x=0.05;x<=5;x+=0.05){const d1=5,d2=10;
+      pts.push({x,y:Math.pow(x,d1/2-1)/Math.pow(1+d1*x/d2,(d1+d2)/2)});}
+    chartInstance=new Chart(ctx,{type:"line",
+      data:{datasets:[{data:pts,borderColor:A,tension:.3,pointRadius:0,fill:true,backgroundColor:"rgba(79,70,229,.1)"}]},
+      options:line("F value","density")});
+    note.textContent="An F-distribution (df=5,10): right-skewed and always positive. Large F → reject H₀.";
+  }
+  else if(type==="chisquare"){
+    const pts=[];const k=5;
+    for(let x=0.1;x<=16;x+=0.1){pts.push({x,y:Math.pow(x,k/2-1)*Math.exp(-x/2)});}
+    chartInstance=new Chart(ctx,{type:"line",
+      data:{datasets:[{data:pts,borderColor:A,tension:.3,pointRadius:0,fill:true,backgroundColor:"rgba(79,70,229,.1)"}]},
+      options:line("χ² value","density")});
+    note.textContent="Chi-square distribution (df=5), right-skewed. Critical value ≈ 11.07 at α = 0.05.";
+  }
+  else if(type==="hypothesis"){
+    const pts=[];for(let x=-4;x<=4;x+=0.1)pts.push({x,y:nPDF(x,0,1)});
+    chartInstance=new Chart(ctx,{type:"line",
+      data:{datasets:[{data:pts,borderColor:A,tension:.4,pointRadius:0,fill:true,backgroundColor:"rgba(79,70,229,.12)"}]},
+      options:line("test statistic","density")});
+    note.textContent="The tails beyond the critical values are the rejection regions where p ≤ α.";
+  }
+  else if(type==="type-errors"){
+    chartInstance=new Chart(ctx,{type:"bar",
+      data:{labels:["Correct (H₀ true)","Type I (α)","Type II (β)","Power (1−β)"],
+        datasets:[{data:[0.95,0.05,0.20,0.80],
+          backgroundColor:["#22c55e","#ef4444","#f59e0b","#4f46e5"]}]},
+      options:{...noLegend,scales:{y:{beginAtZero:true,max:1}}}});
+    note.textContent="Illustrative rates: α = 0.05 (Type I), β = 0.20 (Type II), power = 0.80.";
+  }
+  else if(type==="correlation"){
+    const pts=[];for(let i=0;i<40;i++){const x=Math.random()*10;
+      pts.push({x,y:x*0.8+Math.random()*2});}
+    chartInstance=new Chart(ctx,{type:"scatter",
+      data:{datasets:[{data:pts,backgroundColor:A}]},
+      options:line("study hours","exam score")});
+    note.textContent="A strong positive correlation (r ≈ 0.8): points trend upward together.";
+  }
+  else if(type==="regression"){
+    const pts=[],line1=[];
+    for(let i=0;i<30;i++){const x=Math.random()*8;pts.push({x,y:30+5*x+(Math.random()*10-5)});}
+    for(let x=0;x<=8;x+=0.5)line1.push({x,y:30+5*x});
+    chartInstance=new Chart(ctx,{type:"scatter",
+      data:{datasets:[
+        {label:"data",data:pts,backgroundColor:"#94a3b8"},
+        {label:"ŷ = 30 + 5x",data:line1,type:"line",borderColor:A,pointRadius:0,tension:0}]},
+      options:{scales:{x:{type:"linear",title:{display:true,text:"study hours"}},
+        y:{title:{display:true,text:"score"}}},plugins:{legend:{position:"bottom"}}}});
+    note.textContent="Least-squares line ŷ = 30 + 5x fitted through the scattered data.";
+  }
+  else if(type==="nonlinear"){
+    const pts=[];for(let x=0;x<=6;x+=0.25)pts.push({x,y:100*Math.pow(2,x)});
+    chartInstance=new Chart(ctx,{type:"line",
+      data:{datasets:[{label:"N = 100·2^t",data:pts,borderColor:A,tension:.3,pointRadius:0,fill:true,backgroundColor:"rgba(79,70,229,.1)"}]},
+      options:line("time (h)","count")});
+    note.textContent="Exponential growth: doubling each hour rises far faster than any straight line.";
+  }
+  else if(type==="multilinear"){
+    chartInstance=new Chart(ctx,{type:"bar",
+      data:{labels:["Intercept b₀","Study b₁","Sleep b₂"],
+        datasets:[{data:[20,5,3],backgroundColor:["#94a3b8",A,"#22c55e"]}]},
+      options:{...noLegend,scales:{y:{beginAtZero:true}}}});
+    note.textContent="ŷ = 20 + 5·study + 3·sleep. Each bar is a coefficient's contribution.";
+  }
+  else if(type==="timeseries"){
+    const pts=[];for(let t=0;t<=24;t++){
+      pts.push({x:t, y:10 + 0.5*t + 3*Math.sin(t/2)});}
+    chartInstance=new Chart(ctx,{type:"line",
+      data:{datasets:[{data:pts,borderColor:A,tension:.3,pointRadius:2,fill:false}]},
+      options:line("time","value")});
+    note.textContent="Upward trend + repeating seasonal wave — the two core time-series components.";
+  }
+}
+
+buildNav();
+showHome();
+
+</script>
+</body>
+</html>
